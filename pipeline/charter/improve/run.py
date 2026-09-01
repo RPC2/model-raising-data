@@ -363,6 +363,7 @@ def generate_batch(
     completion_max_tokens: int | None = None,
     context_window_tokens: int | None = None,
     canary_rng_seed: int | None = None,
+    disable_canaries: bool = False,
     on_failure: Callable[[dict], None] | None = None,
     on_result: Callable[[dict], None] | None = None,
     mode: str | None = None,
@@ -416,7 +417,7 @@ def generate_batch(
         if prefl_prompt_path and mode != "reflection"
         else None
     )
-    canaries = _load_canaries()
+    canaries = [] if disable_canaries else _load_canaries()
 
     async def _call_reflection(
         item: dict,
@@ -427,7 +428,9 @@ def generate_batch(
         refl_user = f"## Full Text\n\n{context_before}"
 
         canary_id = None
-        if canary_rng_seed is not None:
+        if not canaries:  # empty list disables injection entirely (as in charter.scale)
+            inject, canary = False, None
+        elif canary_rng_seed is not None:
             item_rng = random.Random(f"{canary_rng_seed}_{item['item_id']}_canary_v1")
             inject = item_rng.random() < CANARY_RATE
             canary = item_rng.choice(canaries) if inject else None
@@ -638,6 +641,7 @@ def generate_batch(
             union_charter_elements(
                 refl_parsed.get("reflection_1p", ""),
                 refl_parsed.get("reflection_3p"),
+                charter_text=charter_text,
             )
             if refl_parsed
             else []
@@ -648,6 +652,7 @@ def generate_batch(
                 prefl_parsed.get("neutral"),
                 prefl_parsed.get("judgemental"),
                 prefl_parsed.get("idealisation"),
+                charter_text=charter_text,
             )
             if prefl_parsed
             else []

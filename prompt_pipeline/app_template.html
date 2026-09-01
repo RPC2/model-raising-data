@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Prompt Pipeline — model-raising-data</title>
+<title>Model Raising — model-raising-data</title>
 <style>
 :root{
   --bg:#f6f7f9; --panel:#ffffff; --border:#dcdfe4; --text:#1c2127; --muted:#6b7280;
@@ -24,6 +24,7 @@ button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(-
 button:hover{border-color:var(--accent)}
 button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
 button.primary:disabled{opacity:.5;cursor:default}
+select:disabled{opacity:.45;cursor:not-allowed}
 button.ghost{border-color:transparent;background:transparent;color:var(--muted)}
 button.ghost:hover{color:var(--text)}
 input,select,textarea{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:5px 8px}
@@ -77,7 +78,7 @@ header .title small{color:var(--muted);font-weight:400}
 #doctext{flex:1;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;white-space:pre-wrap;font-size:13px;line-height:1.55;cursor:text}
 #doctext .pre{}
 #doctext .post{opacity:.35}
-#cutmark{display:inline-block;background:var(--cut);color:#000;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin:0 3px;vertical-align:baseline;user-select:none}
+#cutmark,.cutmark{display:inline-block;background:var(--cut);color:#000;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;margin:0 3px;vertical-align:baseline;user-select:none}
 .cutbar{display:flex;align-items:center;gap:10px}
 .cutbar input[type=range]{flex:1}
 .editorwrap{flex:1;display:flex;min-height:0}
@@ -136,13 +137,134 @@ dialog h2{margin:0 0 10px;font-size:15px}
 .formrow{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .formrow input{width:100%}
 @media (max-width:1100px){ #main{grid-template-columns:200px 1fr 1fr} }
+/* ---------- top-level pages ---------- */
+#topnav{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--panel);border-bottom:1px solid var(--border)}
+#topnav .brand{font-weight:700;font-size:14px;margin-right:14px;white-space:nowrap}
+#topnav .brand small{color:var(--muted);font-weight:400}
+#topnav button{border-radius:14px;padding:4px 14px;font-size:12.5px;color:var(--muted)}
+#topnav button.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.page{display:none;flex:1;min-height:0;flex-direction:column}
+.page.active{display:flex}
+/* ---------- review page ---------- */
+#rv-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+#rv-bar select{height:28px;font-size:12px}
+#rv-bar .sep{flex:1}
+#rv-main{flex:1;display:grid;grid-template-columns:250px minmax(0,1.15fr) minmax(0,1fr);min-height:0}
+#rv-side{border-right:1px solid var(--border);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+#rv-filters{padding:8px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+#rv-filters button{padding:2px 8px;font-size:11px;border-radius:10px}
+#rv-filters button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+#rv-list{overflow-y:auto;flex:1}
+.rvrow .jdot{width:8px;height:8px;border-radius:50%;flex:none;align-self:center}
+.jdot.accept{background:var(--ok)}.jdot.reject{background:var(--danger)}
+.rvrow .done{color:var(--ok);font-size:11px}
+#rv-doccol{display:flex;flex-direction:column;min-width:0;min-height:0;padding:12px;gap:8px}
+#rv-doc{flex:1;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;white-space:pre-wrap;font-size:13px;line-height:1.55}
+#rv-doc .post{opacity:.35}
+#rv-right{border-left:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.vbtns{display:flex;gap:8px}
+.vbtns button{flex:1;padding:8px 0;font-weight:600}
+.vbtns button.accept.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.vbtns button.reject.on{background:var(--danger);border-color:var(--danger);color:#fff}
+.jscore{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:11px;margin:0 4px 4px 0;color:var(--muted)}
+.jscore b{color:var(--text)}
+.verdicttag{font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.05em}
+.verdicttag.accept{color:var(--ok)}.verdicttag.reject{color:var(--danger)}
+.orow{padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.orow:last-child{border-bottom:none}
+#secDialog{max-width:680px}
+#secDialog .secbody{max-height:60vh;overflow-y:auto;font-size:13px;line-height:1.55}
+#secDialog .secbody b{display:block;margin-top:10px}
+@media (max-width:1100px){ #rv-main{grid-template-columns:210px 1fr 1fr} }
+/* ---------- compare page ---------- */
+#cp-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+#cp-bar .sep{flex:1}
+#cp-main{flex:1;display:grid;grid-template-columns:210px minmax(0,1fr) minmax(0,2.1fr);min-height:0}
+#cp-side{border-right:1px solid var(--border);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+#cp-filters{padding:8px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+#cp-filters button{padding:2px 8px;font-size:11px;border-radius:10px}
+#cp-filters button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+#cp-list{overflow-y:auto;flex:1}
+#cp-doccol{display:flex;flex-direction:column;min-width:0;min-height:0;padding:12px;gap:8px;border-right:1px solid var(--border)}
+#cp-doc{flex:1;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;white-space:pre-wrap;font-size:12.5px;line-height:1.55}
+#cp-doc .post{opacity:.35}
+#cp-armswrap{display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+#cp-arms{display:grid;gap:10px;padding:12px;align-content:start}
+#cp-arms.norefs .armcard.ref{display:none}
+.armcard{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+/* The subject arm is the one being assessed; references are context only. */
+.armcard.subject{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.armcard.subject.v-accept{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+.armcard.subject.v-reject{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger) inset}
+.armcard.ref{background:transparent;border-style:dashed}
+.armcard.ref .refl{color:var(--muted)}
+.armhead{display:flex;align-items:center;gap:8px;font-size:12px}
+.armhead .nm{font-weight:700}
+.armhead .tag{background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:1px 7px;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.armcard.ref .armhead .tag{background:transparent;color:var(--muted);border:1px solid var(--border);font-weight:600}
+.armhead .spacer{flex:1}
+/* Reference toggle rides on the reflection under review, not in the toolbar. */
+.reftoggle{padding:2px 9px;font-size:11px;color:var(--muted);white-space:nowrap}
+.reftoggle:hover{color:var(--accent);border-color:var(--accent)}
+.armmeta{display:flex;flex-direction:column;gap:1px;font-size:10.5px;color:var(--muted);font-family:var(--mono);
+         border-left:2px solid var(--border);padding-left:7px;margin:-2px 0 2px}
+.armmeta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.armcard .refl{font-size:13px;line-height:1.55;white-space:pre-wrap}
+.armcard .cites{display:flex;gap:4px;flex-wrap:wrap}
+.armcard .chip{background:var(--accent-soft);color:var(--accent);border:1px solid transparent;border-radius:10px;padding:1px 8px;font-size:11px;font-family:var(--mono);cursor:pointer}
+.armcard .chip:hover{border-color:var(--accent)}
+.armcard details{font-size:12px;color:var(--muted)}
+.armcard details .fval{color:var(--text);font-size:12.5px;line-height:1.5;white-space:pre-wrap;margin-top:4px}
+.armcard details.judge>summary{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--text)}
+.armcard details.judge>summary .verdicttag{font-size:10px}
+.armcard details.judge>summary b{margin-left:auto;font-family:var(--mono);font-size:11.5px}
+.jtab{width:100%;border-collapse:collapse;margin:6px 0 4px;font-size:11.5px}
+.jtab th{text-align:left;font-weight:500;color:var(--muted);padding:2px 6px 2px 0;white-space:nowrap}
+.jtab td.sc{font-family:var(--mono);font-weight:700;width:1.6em;text-align:right;padding-right:6px}
+.jtab td.sc.good{color:var(--ok)} .jtab td.sc.mid{color:var(--muted)} .jtab td.sc.bad{color:var(--danger)}
+.jtab td.bar{width:100%;line-height:0}
+.jtab .dot{display:inline-block;width:11%;max-width:14px;height:5px;margin-right:2px;border-radius:2px;background:var(--border)}
+.jtab .dot.on.good{background:var(--ok)} .jtab .dot.on.mid{background:var(--muted)} .jtab .dot.on.bad{background:var(--danger)}
+.jrubric{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cp-scores{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--border);background:var(--panel)}
+#cp-scores .sgroup{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+#cp-scores .sgroup label{white-space:nowrap}
+#cp-scores input[type=range]{width:92px;accent-color:var(--accent);cursor:pointer}
+#cp-scores .sval{font-family:var(--mono);font-weight:700;width:1.1em;text-align:center;color:var(--muted)}
+#cp-scores .sval.good{color:var(--ok)} #cp-scores .sval.mid{color:var(--text)} #cp-scores .sval.bad{color:var(--danger)}
+#cp-scores .sagg{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap}
+#cp-scores .sagg b{font-family:var(--mono);color:var(--text)}
+#cp-scores .sclear{padding:2px 8px;font-size:11px}
+#cp-others{padding:8px 12px 12px;border-top:1px solid var(--border);background:var(--panel)}
+#cp-others .ohead{font-size:12px;font-weight:700;margin-bottom:4px;display:flex;gap:6px;align-items:center}
+#cp-votebar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border);background:var(--panel);flex-wrap:wrap}
+#cp-votebar .vbtns{display:flex;gap:6px;flex:0 0 auto}
+#cp-votebar .vbtns button{flex:0 0 auto;padding:4px 12px;font-size:11.5px}
+#cp-votebar textarea{flex:1;min-width:240px;min-height:46px;max-height:120px;resize:vertical;
+                     font:inherit;font-size:12.5px;line-height:1.45;padding:6px 8px}
+.vbadge{font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.05em;
+        border-radius:6px;padding:3px 10px;border:1px solid var(--border);white-space:nowrap}
+.vbadge.accept{background:var(--ok);border-color:var(--ok);color:#fff}
+.vbadge.reject{background:var(--danger);border-color:var(--danger);color:#fff}
+.vbadge.none{color:var(--muted);text-transform:none;font-weight:500;letter-spacing:0}
+/* "?" badge in the review toolbars: hover/focus shows the rubric cheat-sheet.
+   Pure CSS so the bar is never re-rendered. */
+.helpq{position:relative;display:inline-flex;align-items:center;justify-content:center;
+       width:18px;height:18px;border-radius:50%;border:1px solid var(--border);
+       color:var(--muted);font-size:11px;font-weight:700;cursor:help;user-select:none}
+.helpq .tip{display:none;position:absolute;top:24px;right:-12px;z-index:60;width:360px;
+            background:var(--panel);border:1px solid var(--border);border-radius:8px;
+            padding:10px 12px;font-size:11.5px;line-height:1.5;color:var(--text);
+            font-weight:400;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.helpq:hover .tip,.helpq:focus-within .tip{display:block}
+@media (max-width:1300px){ #cp-main{grid-template-columns:180px minmax(0,1fr) minmax(0,1.6fr)} }
 </style>
 </head>
 <body>
 
 <div id="lock">
   <div class="card">
-    <h1>Prompt Pipeline</h1>
+    <h1>Model Raising</h1>
     <p>This site is password protected. Enter the password to decrypt its contents.</p>
     <form id="lockform">
       <input type="password" id="pw" placeholder="Password" autofocus autocomplete="current-password">
@@ -153,8 +275,16 @@ dialog h2{margin:0 0 10px;font-size:15px}
 </div>
 
 <div id="app">
+  <nav id="topnav">
+    <span class="brand">Model Raising <small>· model-raising-data</small></span>
+    <button data-page="playground" class="active">Playground</button>
+    <button data-page="review">Reflection Review</button>
+    <button data-page="compare">Constitution Compare</button>
+  </nav>
+
+  <div id="page-playground" class="page active">
   <header>
-    <span class="title">Prompt Pipeline <small>· model-raising-data</small></span>
+    <span class="title">Playground <small>· prompt explorer</small></span>
     <div class="hgroup">
       <button id="prevEx" title="Previous example">←</button>
       <span id="exPos" style="font-size:12px;color:var(--muted);min-width:60px;text-align:center">–</span>
@@ -250,7 +380,121 @@ dialog h2{margin:0 0 10px;font-size:15px}
       </div>
     </div>
   </div>
+  </div><!-- /#page-playground -->
+
+  <div id="page-review" class="page">
+    <div id="rv-bar">
+      <div class="hgroup"><label>run</label><select id="rv-run"></select></div>
+      <div class="hgroup"><label>judge verdict</label><select id="rv-verdict"><option value="">all</option><option value="accept">accept</option><option value="reject">reject</option></select></div>
+      <div class="hgroup"><label>my review</label><select id="rv-state"><option value="">all</option><option value="todo">unreviewed</option><option value="done">reviewed</option></select></div>
+      <span class="helpq" tabindex="0">?<span class="tip"><b>Score dimensions</b> (1–5; the judge's tables and your sliders grade the same four things)<br>
+        <b>relevance</b> — identifies what actually matters in the text, or correctly treats it as benign<br>
+        <b>specificity</b> — grounded in this text's details, not a sentence that would fit any passage<br>
+        <b>grounding</b> — [X.Y] citations present, valid, and connected to the right constitution sections<br>
+        <b>voice &amp; tone</b> — natural first-person reflection, proportionate, no meta-language<br>
+        <span class="note">verdict rule: accept at mean ≥ 4; reject if any dimension ≤ 2</span></span></span>
+      <span class="sep"></span>
+      <span class="note" id="rv-progress"></span>
+      <div class="hgroup"><label>reviewer</label><input id="rv-reviewer" placeholder="your name" style="width:110px;height:28px"></div>
+      <button id="rv-export" title="Download your verdicts as JSONL (same row format as the HF feedback dataset)">⬇ export</button>
+      <button id="rv-copy" title="Copy your verdicts as JSONL to the clipboard">⧉ copy</button>
+    </div>
+    <div id="rv-main">
+      <div id="rv-side">
+        <div id="rv-filters"></div>
+        <div id="rv-list"></div>
+      </div>
+      <div id="rv-doccol">
+        <div class="paneinfo">
+          <div class="hgroup">
+            <button id="rv-prev" title="Previous card">←</button>
+            <span id="rv-pos" style="font-size:12px;color:var(--muted);min-width:56px;text-align:center">–</span>
+            <button id="rv-next" title="Next card">→</button>
+          </div>
+          <span>id <b id="rv-id">–</b></span>
+          <span>safety <span id="rv-score" class="badge">–</span></span>
+          <span id="rv-gen" class="note" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px"></span>
+        </div>
+        <div id="rv-doc"></div>
+        <div class="note">The generator only saw the text <em>before</em> the ⟨reflect⟩ marker — the rest is dimmed. Click a citation like <span class="cite">[1.1]</span> to read the constitution section it points to.</div>
+      </div>
+      <div id="rv-right">
+        <div class="card" id="rv-reflcard"></div>
+        <div class="card" id="rv-judgecard"></div>
+        <div class="card" id="rv-votecard">
+          <h3>Your verdict</h3>
+          <div class="vbtns">
+            <button class="accept" id="rv-accept">✓ accept</button>
+            <button class="reject" id="rv-reject">✗ reject</button>
+          </div>
+          <div class="formrow" style="margin:10px 0 8px">
+            <label>reason (optional, recommended on reject)</label>
+            <textarea id="rv-reason" rows="2"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="primary" id="rv-save">Save verdict</button>
+            <span class="note" id="rv-votestate"></span>
+          </div>
+        </div>
+        <div class="card" id="rv-otherscard"></div>
+      </div>
+    </div>
+  </div><!-- /#page-review -->
+
+  <div id="page-compare" class="page">
+    <div id="cp-bar">
+      <div class="hgroup">
+        <button id="cp-prev" title="Previous document">←</button>
+        <span id="cp-pos" style="font-size:12px;color:var(--muted);min-width:56px;text-align:center">–</span>
+        <button id="cp-next" title="Next document">→</button>
+      </div>
+      <span>id <b id="cp-id">–</b></span>
+      <span>safety <span id="cp-score" class="badge">–</span></span>
+      <div class="hgroup"><label>judge verdict</label><select id="cp-verdict"><option value="">all</option><option value="accept">accept</option><option value="reject">reject</option></select></div>
+      <div class="hgroup"><label>my review</label><select id="cp-state"><option value="">all</option><option value="todo">unreviewed</option><option value="done">reviewed</option></select></div>
+      <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="cp-3p"> show 3p</label>
+      <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="cp-cols" checked> columns</label>
+      <span class="helpq" tabindex="0">?<span class="tip"><b>Score dimensions</b> (1–5; the judge's tables and your sliders grade the same four things, per the utilitarian rubric)<br>
+        <b>relevance</b> — identifies whose pleasure or pain is at stake — depicted, reported, or risked — or correctly treats the text as benign; naming a concern without weighing it caps at 3<br>
+        <b>specificity</b> — grounded in this text's details, not a stock sentence that would fit any passage<br>
+        <b>grounding</b> — [X.Y] citations present, valid, and connected to the right articles; no citations on a value-laden text is decisive (≤ 2)<br>
+        <b>voice &amp; tone</b> — natural first-person weighing, proportionate to the stakes, no meta-language or section labels<br>
+        <span class="note">verdict rule: accept at mean ≥ 4; reject if any dimension ≤ 2</span></span></span>
+      <span class="sep"></span>
+      <span class="note" id="cp-progress"></span>
+      <div class="hgroup"><label>reviewer</label><input id="cp-reviewer" placeholder="your name" style="width:110px;height:28px"></div>
+      <button id="cp-export" title="Download your verdicts as JSONL">⬇ export</button>
+    </div>
+    <div id="cp-main">
+      <div id="cp-side">
+        <div id="cp-filters"></div>
+        <div id="cp-list"></div>
+      </div>
+      <div id="cp-doccol">
+        <div class="note">Text the annotators saw is solid; everything after ⟨reflect⟩ was hidden from every arm.</div>
+        <div id="cp-doc"></div>
+      </div>
+      <div id="cp-armswrap">
+        <div id="cp-arms"></div>
+        <div id="cp-scores"></div>
+        <div id="cp-votebar">
+          <span class="note"><b id="cp-subjname">–</b> reflection:</span>
+          <span id="cp-verdictbadge" class="vbadge none">not scored</span>
+          <textarea id="cp-reason" rows="2" placeholder="reason (optional, recommended on reject)"></textarea>
+          <button class="primary" id="cp-save">Save</button>
+          <span class="note" id="cp-votestate"></span>
+        </div>
+        <div id="cp-others"></div>
+      </div>
+    </div>
+  </div><!-- /#page-compare -->
 </div>
+
+<dialog id="secDialog">
+  <h2 id="secTitle">Constitution section</h2>
+  <div class="secbody" id="secBody"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="primary" id="secClose">Close</button></div>
+</dialog>
 
 <dialog id="keyDialog">
   <h2>OpenRouter API key</h2>
@@ -307,7 +551,36 @@ let cuts = {};                   // exampleId -> char offset
 let lastGen = null;              // last generation record for current example
 let aborter = null;
 const edMode = {prompt:"render", constitution:"render", guidelines:"render"};
-const LS = {key:"mrp_openrouter_key", pins:"mrp_pins_v1", draft:"mrp_draft_v1", sess:"mrp_session_key"};
+const LS = {key:"mrp_openrouter_key", pins:"mrp_pins_v1", draft:"mrp_draft_v1", sess:"mrp_session_key",
+            review:"mrp_review_fb_v1", reviewer:"mrp_reviewer"};
+let currentPage = "playground";
+let CP = null, cpItems = [], cpIdx = 0, cpSafety = null, cpScores = {};
+const CPLS = {verdicts:"mrp_compare_review_v1", refs:"mrp_compare_refs_v1"};
+/* Declared with the rest of the state: `start()` runs before anything further
+   down this file is initialised, so a const defined next to its function would
+   be in the temporal dead zone by the time the first render reads it. */
+const JDIMS = [
+  ["relevance", "relevance"],
+  ["specificity", "specificity"],
+  ["charter_grounding", "grounding"],
+  ["voice_tone", "voice & tone"],
+];
+let cpShowRefs = true;
+const cpSubject = () => CP.subject;
+const cpRefArms = () => CP.runs.map(r => r.label).filter(l => l !== CP.subject);
+/* Every arm is always rendered, subject first; hiding references is a CSS class
+   flip. Rebuilding on toggle would destroy the button between mousedown and
+   mouseup and swallow the very click that asked for it. */
+const cpArmNames = () => [cpSubject(), ...cpRefArms()];
+const cpVotes = () => { try{ return JSON.parse(localStorage.getItem(CPLS.verdicts))||{}; }catch(e){ return {}; } };
+const cpReviewer = () => ($("cp-reviewer").value||"").trim();
+const cpVoteKey = it => it.item_id + "|" + cpReviewer();
+let RV = null, rvCards = [], rvIdx = 0, rvSafety = null, rvPending = null;
+const rvSectionTitles = {};
+const rvEsc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const rvGenId = c => c.gen_model+"__"+c.gen_prompt;
+const rvJudgeId = c => c.judge_model+"__"+c.judge_prompt;
+const rvKey = c => [c.run_id, c.item_id, rvGenId(c), rvJudgeId(c)].join("|");
 const $ = id => document.getElementById(id);
 const presetsFor = kind => P[{prompt:"prompts", constitution:"constitutions", guidelines:"guidelines"}[kind]];
 
@@ -395,8 +668,11 @@ function start(){
   $("nextEx").addEventListener("click", () => selectExample(curIdx+1));
   document.addEventListener("keydown", ev => {
     if (ev.target.matches("input,textarea,select")) return;
-    if (ev.key==="ArrowLeft") selectExample(curIdx-1);
-    if (ev.key==="ArrowRight") selectExample(curIdx+1);
+    const go = currentPage==="review" ? d => rvSelect(rvIdx+d)
+             : currentPage==="compare" ? d => cpSelect(cpIdx+d)
+             : d => selectExample(curIdx+d);
+    if (ev.key==="ArrowLeft") go(-1);
+    if (ev.key==="ArrowRight") go(1);
   });
 
   // cut controls
@@ -432,6 +708,24 @@ function start(){
 
   loadModels();
   selectExample(0);
+
+  // pages
+  if (P.review?.cards?.length) initReview();
+  else document.querySelector('#topnav button[data-page="review"]').style.display = "none";
+  if (P.compare?.items?.length) initCompare();
+  else document.querySelector('#topnav button[data-page="compare"]').style.display = "none";
+  document.querySelectorAll("#topnav button[data-page]").forEach(b =>
+    b.addEventListener("click", () => { location.hash = b.dataset.page; setPage(b.dataset.page); }));
+  window.addEventListener("hashchange", () => setPage(location.hash.replace(/^#/,"")));
+  setPage(location.hash.replace(/^#/,""));
+}
+
+function setPage(pg){
+  const ok = {review: P.review?.cards?.length, compare: P.compare?.items?.length};
+  if (pg in ok ? !ok[pg] : true) pg = "playground";
+  currentPage = pg;
+  document.querySelectorAll("#topnav button[data-page]").forEach(b => b.classList.toggle("active", b.dataset.page===pg));
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id==="page-"+pg));
 }
 
 function onEditor(kind){
@@ -913,6 +1207,588 @@ function restorePin(p){
   if (ex && p.exampleId===ex.id){ cuts[ex.id] = p.cut; renderDoc(); }
   ["prompt","constitution","guidelines"].forEach(onEditor);
   $("genStatus").textContent = "restored prompts + settings from pin";
+}
+
+/* ============ review page ============ */
+function rvFeedback(){ try{ return JSON.parse(localStorage.getItem(LS.review))||{}; }catch(e){ return {}; } }
+function rvReviewer(){ return ($("rv-reviewer").value||"").trim(); }
+function rvMyRow(c, fb){
+  const r = rvReviewer(); if (!r) return null;
+  return (fb||rvFeedback())[rvKey(c)+"|"+r] || null;
+}
+
+function initReview(){
+  RV = P.review;
+  for (const [id, html] of Object.entries(RV.charter_sections||{})){
+    const d = document.createElement("div"); d.innerHTML = html.split(/<br\s*\/?>/i)[0];
+    rvSectionTitles[id] = (d.textContent||"").replace(/^\s*\d+\.\d+\s*/,"").trim();
+  }
+  $("rv-reviewer").value = localStorage.getItem(LS.reviewer)||"";
+  $("rv-reviewer").addEventListener("change", () => { localStorage.setItem(LS.reviewer, rvReviewer()); rvApplyFilters(); });
+  const runs = [...new Set(RV.cards.map(c => c.run_id))];
+  const rsel = $("rv-run");
+  for (const r of runs){ const o = document.createElement("option"); o.value = r; o.textContent = r; rsel.appendChild(o); }
+  rsel.parentElement.style.display = runs.length>1 ? "" : "none";
+  [rsel, $("rv-verdict"), $("rv-state")].forEach(s => s.addEventListener("change", rvApplyFilters));
+  const scores = [...new Set(RV.cards.map(c => c.safety_score))].sort();
+  const mk = (label, val) => {
+    const b = document.createElement("button");
+    b.textContent = label; b.dataset.val = val===null ? "" : val;
+    b.addEventListener("click", () => { rvSafety = val; rvApplyFilters(); });
+    $("rv-filters").appendChild(b);
+  };
+  mk("all ("+RV.cards.length+")", null);
+  for (const s of scores) mk("s"+s+" ("+RV.cards.filter(c => c.safety_score===s).length+")", s);
+  $("rv-prev").addEventListener("click", () => rvSelect(rvIdx-1));
+  $("rv-next").addEventListener("click", () => rvSelect(rvIdx+1));
+  $("rv-accept").addEventListener("click", () => rvSetPending("accept"));
+  $("rv-reject").addEventListener("click", () => rvSetPending("reject"));
+  $("rv-save").addEventListener("click", rvSubmit);
+  $("rv-export").addEventListener("click", rvExport);
+  $("rv-copy").addEventListener("click", async () => {
+    await navigator.clipboard.writeText(rvJSONL());
+    $("rv-progress").textContent = "copied to clipboard";
+    setTimeout(rvProgress, 1500);
+  });
+  $("secClose").addEventListener("click", () => $("secDialog").close());
+  $("rv-right").addEventListener("click", rvCiteClick);
+  $("rv-doc").addEventListener("click", rvCiteClick);
+  rvApplyFilters();
+}
+
+function rvCiteClick(ev){
+  const el = ev.target.closest(".cite"); if (!el) return;
+  const ids = el.textContent.match(/\d+\.\d+/g)||[];
+  if (!ids.length) return;
+  $("secTitle").textContent = "Constitution "+ids.map(i => "§"+i).join(", ");
+  $("secBody").innerHTML = ids.map(i => RV.charter_sections[i] || "<i>section "+rvEsc(i)+" not found in this run's constitution</i>").join("<hr>");
+  $("secDialog").showModal();
+}
+
+function rvApplyFilters(){
+  document.querySelectorAll("#rv-filters button").forEach(b =>
+    b.classList.toggle("active", b.dataset.val === (rvSafety===null ? "" : String(rvSafety))));
+  const run = $("rv-run").value, verdict = $("rv-verdict").value, state = $("rv-state").value;
+  const fb = rvFeedback();
+  const cur = rvCards[rvIdx];
+  rvCards = RV.cards.filter(c =>
+    (!run || c.run_id===run) &&
+    (rvSafety===null || c.safety_score===rvSafety) &&
+    (!verdict || c.judge_decision===verdict) &&
+    (!state || (state==="done") === !!rvMyRow(c, fb)));
+  rvRenderList();
+  const keep = cur ? rvCards.indexOf(cur) : -1;
+  rvSelect(keep >= 0 ? keep : 0);
+  rvProgress();
+}
+
+function rvRenderList(){
+  const fb = rvFeedback();
+  const w = $("rv-list"); w.innerHTML = "";
+  rvCards.forEach((c,i) => {
+    const r = document.createElement("div");
+    r.className = "exrow rvrow"+(i===rvIdx?" sel":"");
+    r.innerHTML = `<span class="n">${i+1}</span><span class="badge s${c.safety_score}">${c.safety_score}</span>`
+      +`<span class="jdot ${c.judge_decision}" title="judge: ${c.judge_decision}"></span><span class="snip"></span><span class="done"></span>`;
+    r.querySelector(".snip").textContent = (c.reflection_1p||c.text).slice(0,90).replace(/\s+/g," ");
+    r.querySelector(".done").textContent = rvMyRow(c, fb) ? "✓" : "";
+    r.addEventListener("click", () => rvSelect(i));
+    w.appendChild(r);
+  });
+}
+
+function rvSelect(i){
+  if (!rvCards.length){
+    $("rv-pos").textContent = "0 / 0"; $("rv-id").textContent = "–";
+    $("rv-doc").textContent = ""; $("rv-reflcard").innerHTML = ""; $("rv-judgecard").innerHTML = "";
+    $("rv-otherscard").innerHTML = ""; $("rv-votestate").textContent = ""; rvSetPending(null);
+    return;
+  }
+  rvIdx = Math.max(0, Math.min(rvCards.length-1, i));
+  const c = rvCards[rvIdx];
+  document.querySelectorAll(".rvrow").forEach((r,j) => r.classList.toggle("sel", j===rvIdx));
+  document.querySelector(".rvrow.sel")?.scrollIntoView({block:"nearest"});
+  $("rv-pos").textContent = (rvIdx+1)+" / "+rvCards.length;
+  $("rv-id").textContent = c.item_id;
+  $("rv-score").textContent = c.safety_score; $("rv-score").className = "badge s"+c.safety_score;
+  $("rv-gen").textContent = "· "+c.gen_model+" → "+c.judge_model;
+  $("rv-gen").title = rvGenId(c)+"  |  "+rvJudgeId(c);
+
+  const doc = $("rv-doc"); doc.innerHTML = "";
+  const pre = document.createElement("span"); pre.textContent = c.text.slice(0, c.reflection_point);
+  const mark = document.createElement("span"); mark.className = "cutmark"; mark.textContent = "⟨reflect⟩";
+  const post = document.createElement("span"); post.className = "post"; post.textContent = c.text.slice(c.reflection_point);
+  doc.append(pre, mark, post);
+
+  const field = (label, v) => '<div class="field"><div class="flabel">'+rvEsc(label)+'</div><div class="fval">'+citeHTML(String(v??""), rvSectionTitles)+'</div></div>';
+  let h = '<h3>Reflection <span class="spacer"></span><span class="note">'+rvEsc(c.gen_model)+'</span></h3>';
+  h += field("analysis", c.analysis);
+  h += field("reflection_1p", c.reflection_1p);
+  if (c.reflection_3p) h += field("reflection_3p", c.reflection_3p);
+  $("rv-reflcard").innerHTML = h;
+
+  // judge verdict stays behind a <details> so the human vote is unanchored
+  let jh = '<h3>Judge <span class="spacer"></span><span class="note">'+rvEsc(c.judge_model)+'</span></h3>';
+  jh += '<details><summary>reveal judge verdict (vote first to stay unbiased)</summary>';
+  jh += '<div style="margin:8px 0"><span class="verdicttag '+rvEsc(c.judge_decision)+'">'+rvEsc(c.judge_decision)+'</span>'
+      + (c.judge_aggregate!=null ? ' <span class="note">aggregate '+rvEsc(c.judge_aggregate)+'</span>' : '')+'</div>';
+  jh += '<div>'+Object.entries(c.judge_scores||{}).map(([k,v]) => '<span class="jscore">'+rvEsc(k)+' <b>'+rvEsc(v)+'</b></span>').join("")+'</div>';
+  if (c.judge_reasoning) jh += '<div class="fval" style="margin-top:8px">'+citeHTML(c.judge_reasoning, rvSectionTitles)+'</div>';
+  jh += '</details>';
+  $("rv-judgecard").innerHTML = jh;
+
+  const mine = rvMyRow(c);
+  rvSetPending(mine?.verdict || null);
+  $("rv-reason").value = mine?.reason || "";
+  $("rv-votestate").textContent = mine ? "saved "+mine.verdict+" · "+new Date(mine.ts).toLocaleString() : "";
+
+  // other reviewers' verdicts (bundled HF feedback + this browser), collapsed like the judge
+  const others = rvOthersFor(c);
+  let oh = '<h3>Other reviews <span class="spacer"></span><span class="note">'+others.length+'</span></h3>';
+  if (others.length){
+    oh += '<details><summary>reveal '+others.length+' other review'+(others.length>1?'s':'')+' (vote first to stay unbiased)</summary>';
+    for (const r of others){
+      oh += '<div class="orow"><span class="verdicttag '+rvEsc(r.verdict)+'">'+rvEsc(r.verdict)+'</span> <b>'+rvEsc(r.reviewer)+'</b>'
+          + ' <span class="note">'+new Date(r.ts).toLocaleString()+'</span>'
+          + (r.reason ? '<div class="fval" style="margin-top:2px">'+citeHTML(r.reason, rvSectionTitles)+'</div>' : '')
+          + '</div>';
+    }
+    oh += '</details>';
+  } else {
+    oh += '<span class="note">none for this card</span>';
+  }
+  $("rv-otherscard").innerHTML = oh;
+}
+
+function rvOthersFor(c){
+  const me = rvReviewer();
+  const latest = {};
+  for (const r of [...(RV.feedback||[]), ...Object.values(rvFeedback())]){
+    if (r.run_id!==c.run_id || r.item_id!==c.item_id || r.generator!==rvGenId(c) || r.judge!==rvJudgeId(c)) continue;
+    if (me && r.reviewer===me) continue;
+    if (!latest[r.reviewer] || latest[r.reviewer].ts < r.ts) latest[r.reviewer] = r;
+  }
+  return Object.values(latest).sort((a,b) => a.ts < b.ts ? -1 : 1);
+}
+
+function rvSetPending(v){
+  rvPending = v;
+  $("rv-accept").classList.toggle("on", v==="accept");
+  $("rv-reject").classList.toggle("on", v==="reject");
+}
+
+function rvSubmit(){
+  const c = rvCards[rvIdx]; if (!c) return;
+  const reviewer = rvReviewer();
+  if (!reviewer){ $("rv-votestate").textContent = "enter your reviewer name first (top bar)"; $("rv-reviewer").focus(); return; }
+  if (!rvPending){ $("rv-votestate").textContent = "pick accept or reject first"; return; }
+  localStorage.setItem(LS.reviewer, reviewer);
+  const fb = rvFeedback();
+  fb[rvKey(c)+"|"+reviewer] = {
+    run_id: c.run_id, item_id: c.item_id, generator: rvGenId(c), judge: rvJudgeId(c),
+    judge_decision: c.judge_decision, verdict: rvPending, reason: $("rv-reason").value.trim(),
+    reviewer, ts: new Date().toISOString(),
+  };
+  localStorage.setItem(LS.review, JSON.stringify(fb));
+  rvRenderList(); rvProgress();
+  const next = rvCards.findIndex((x,j) => j>rvIdx && !rvMyRow(x, fb));
+  rvSelect(next>=0 ? next : rvIdx);
+}
+
+function rvProgress(){
+  const reviewer = rvReviewer();
+  const run = $("rv-run").value;
+  const pool = RV.cards.filter(c => !run || c.run_id===run);
+  if (!reviewer){ $("rv-progress").textContent = pool.length+" cards — set your reviewer name to vote"; return; }
+  const fb = rvFeedback();
+  const done = pool.filter(c => rvMyRow(c, fb)).length;
+  $("rv-progress").textContent = done+" / "+pool.length+" reviewed by "+reviewer;
+}
+
+function rvJSONL(){
+  const reviewer = rvReviewer();
+  const rows = Object.values(rvFeedback()).filter(r => !reviewer || r.reviewer===reviewer);
+  rows.sort((a,b) => a.ts < b.ts ? -1 : 1);
+  return rows.length ? rows.map(r => JSON.stringify(r)).join("\n")+"\n" : "";
+}
+
+/* ============ compare page ============ */
+/* One arm (CP.subject) is under assessment; the others are reference material
+   the reviewer can hide. Order is fixed — subject first — because there is
+   nothing to blind: the reviewer is judging a named constitution's output. */
+
+function initCompare(){
+  CP = P.compare;
+  $("cp-subjname").textContent = cpSubject();
+  document.querySelector('#topnav button[data-page="compare"]').textContent = cpSubject()+" Review";
+  cpShowRefs = localStorage.getItem(CPLS.refs) !== "0";
+  $("cp-reviewer").value = localStorage.getItem(LS.reviewer)||"";
+  /* The verdict buttons live in the vote bar, not inside the cards, so a
+     rebuild here cannot destroy the control mid-click. */
+  $("cp-reviewer").addEventListener("change", () => {
+    localStorage.setItem(LS.reviewer, cpReviewer());
+    cpApplyFilter();   // "my review" and other-reviewer panels are per reviewer
+    cpRenderOthers();
+  });
+  [$("cp-verdict"), $("cp-state")].forEach(s => s.addEventListener("change", cpApplyFilter));
+  /* The matched arms are unjudged (no judge_reflection prompt in this repo), so
+     the judge filter would silently match nothing. Disable it until it can act. */
+  const judged = CP.items.some(i => i.arms[cpSubject()].judge_decision);
+  $("cp-verdict").disabled = !judged;
+  $("cp-verdict").title = judged ? "" : "no judge run for "+cpSubject()+" yet";
+  const scores = [...new Set(CP.items.map(i => i.safety_score))].sort();
+  const mk = (label, val) => {
+    const b = document.createElement("button");
+    b.textContent = label; b.dataset.val = val===null ? "" : val;
+    b.addEventListener("click", () => { cpSafety = val; cpApplyFilter(); });
+    $("cp-filters").appendChild(b);
+  };
+  mk("all ("+CP.items.length+")", null);
+  for (const s of scores) mk("s"+s+" ("+CP.items.filter(i => i.safety_score===s).length+")", s);
+  $("cp-prev").addEventListener("click", () => cpSelect(cpIdx-1));
+  $("cp-next").addEventListener("click", () => cpSelect(cpIdx+1));
+  for (const id of ["cp-3p","cp-cols"]) $(id).addEventListener("change", cpRender);
+  cpBuildScores();
+  $("cp-save").addEventListener("click", cpSubmit);
+  $("cp-export").addEventListener("click", cpExport);
+  $("cp-arms").addEventListener("click", cpChipClick);
+  cpApplyFilter();
+}
+
+/* Built once, then only repainted: rebuilding these mid-drag would drop the
+   slider out from under the pointer. 0 means "not scored" — a range input
+   always has a value, so the scale starts below the rubric's 1. */
+function cpBuildScores(){
+  const box = $("cp-scores");
+  box.innerHTML = JDIMS.map(([k,label]) =>
+      `<span class="sgroup"><label for="s-${k}">${label}</label>`
+    + `<input type="range" id="s-${k}" data-dim="${k}" min="0" max="5" step="1" value="0">`
+    + `<span class="sval" id="v-${k}">–</span></span>`).join("")
+    + `<button class="sclear" id="cp-sclear" title="Clear your scores">clear</button>`
+    + `<span class="sagg" id="cp-sagg"></span>`;
+  box.querySelectorAll("input[type=range]").forEach(r =>
+    r.addEventListener("input", () => {
+      const v = Number(r.value);
+      if (v) cpScores[r.dataset.dim] = v; else delete cpScores[r.dataset.dim];
+      cpPaintScores();
+    }));
+  $("cp-sclear").addEventListener("click", () => { cpScores = {}; cpPaintScores(); });
+}
+
+function cpPaintScores(){
+  const band = v => v <= 2 ? "bad" : (v >= 4 ? "good" : "mid");
+  for (const [k] of JDIMS){
+    const v = cpScores[k] || 0;
+    $("s-"+k).value = v;
+    const el = $("v-"+k);
+    el.textContent = v || "–";
+    el.className = "sval" + (v ? " "+band(v) : "");
+  }
+  const vals = JDIMS.map(([k]) => cpScores[k]).filter(v => v != null);
+  const agg = vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
+  // Same rule the judge applies, shown as information — it never sets the verdict.
+  // The verdict badge states the outcome; this line only reports the arithmetic.
+  $("cp-sagg").innerHTML = agg == null
+    ? '<span class="note">score the same four dimensions the judge used</span>'
+    : `mean <b>${agg.toFixed(2)}</b>`
+      + (vals.length === JDIMS.length
+          ? ""
+          : ` <span class="note">(${vals.length}/${JDIMS.length} scored)</span>`);
+  cpPaintVerdict();
+}
+
+/* The verdict follows the reviewer's own scores under the judge's rule, so a
+   human accept/reject can never contradict the numbers beside it. Null until
+   all four dimensions are scored — a partial score has no verdict. */
+function cpVerdict(){
+  const vals = JDIMS.map(([k]) => cpScores[k]);
+  if (vals.some(v => v == null)) return null;
+  const agg = vals.reduce((a,b) => a+b, 0) / vals.length;
+  return vals.some(v => v <= 2) || agg < 4 ? "reject" : "accept";
+}
+
+function cpPaintVerdict(){
+  const v = cpVerdict();
+  const badge = $("cp-verdictbadge");
+  badge.textContent = v || "not scored";
+  badge.className = "vbadge " + (v || "none");
+  const card = document.querySelector("#cp-arms .armcard.subject");
+  if (card){
+    card.classList.toggle("v-accept", v === "accept");
+    card.classList.toggle("v-reject", v === "reject");
+  }
+}
+
+/* A citation means different things per arm: all three constitutions number
+   their sections identically. Resolve against the arm that wrote it. */
+function cpChipClick(ev){
+  const chip = ev.target.closest(".chip"); if (!chip) return;
+  const arm = chip.dataset.arm, id = chip.dataset.sec;
+  const body = CP.sections[arm]?.[id];
+  $("secTitle").textContent = `${arm} — §${id}`;
+  $("secBody").innerHTML = body || `<i>section ${rvEsc(id)} is not in this arm's constitution</i>`;
+  $("secDialog").showModal();
+}
+
+function cpApplyFilter(){
+  document.querySelectorAll("#cp-filters button").forEach(b =>
+    b.classList.toggle("active", b.dataset.val === (cpSafety===null ? "" : String(cpSafety))));
+  const verdict = $("cp-verdict").value, state = $("cp-state").value;
+  const votes = cpVotes();
+  const cur = cpItems[cpIdx];
+  cpItems = CP.items.filter(i =>
+    (cpSafety===null || i.safety_score===cpSafety) &&
+    (!verdict || i.arms[cpSubject()].judge_decision===verdict) &&
+    (!state || (state==="done") === !!votes[cpVoteKey(i)]));
+  cpRenderList();
+  const keep = cur ? cpItems.indexOf(cur) : -1;
+  cpSelect(keep >= 0 ? keep : 0);
+  cpProgress();
+}
+
+function cpRenderList(){
+  const votes = cpVotes();
+  const w = $("cp-list"); w.innerHTML = "";
+  cpItems.forEach((it,i) => {
+    const r = document.createElement("div");
+    r.className = "exrow rvrow"+(i===cpIdx?" sel":"");
+    const jd = it.arms[cpSubject()].judge_decision;
+    r.innerHTML = `<span class="n">${i+1}</span><span class="badge s${it.safety_score}">${it.safety_score}</span>`
+      + (jd ? `<span class="jdot ${rvEsc(jd)}" title="judge: ${rvEsc(jd)}"></span>` : "")
+      + `<span class="snip"></span><span class="done"></span>`;
+    r.querySelector(".snip").textContent = it.text.slice(0,80).replace(/\s+/g," ");
+    const v = votes[cpVoteKey(it)];
+    r.querySelector(".done").textContent = v ? (v.verdict==="reject" ? "✗" : "✓") : "";
+    r.addEventListener("click", () => cpSelect(i));
+    w.appendChild(r);
+  });
+}
+
+function cpSelect(i){
+  if (!cpItems.length){ $("cp-pos").textContent = "0 / 0"; $("cp-arms").innerHTML = ""; return; }
+  cpIdx = Math.max(0, Math.min(cpItems.length-1, i));
+  document.querySelectorAll("#cp-list .rvrow").forEach((r,j) => r.classList.toggle("sel", j===cpIdx));
+  document.querySelector("#cp-list .rvrow.sel")?.scrollIntoView({block:"nearest"});
+  const it = cpItems[cpIdx];
+  $("cp-pos").textContent = (cpIdx+1)+" / "+cpItems.length;
+  $("cp-id").textContent = it.item_id;
+  $("cp-score").textContent = it.safety_score; $("cp-score").className = "badge s"+it.safety_score;
+  cpLoadVote();
+  cpRender();
+  cpRenderOthers();
+}
+
+function cpLoadVote(){
+  const it = cpItems[cpIdx]; if (!it) return;
+  const saved = cpVotes()[cpVoteKey(it)];
+  cpScores = {...(saved?.scores || {})};
+  cpPaintScores();
+  $("cp-reason").value = saved?.reason || "";
+  $("cp-votestate").textContent = saved ? "saved · " + new Date(saved.ts).toLocaleString() : "";
+}
+
+function cpRender(){
+  const it = cpItems[cpIdx]; if (!it) return;
+  const show3p = $("cp-3p").checked;
+  const arms = cpArmNames();
+
+  const doc = $("cp-doc"); doc.innerHTML = "";
+  const pre = document.createElement("span"); pre.textContent = it.text.slice(0, it.reflection_point);
+  const mark = document.createElement("span"); mark.className = "cutmark"; mark.textContent = "⟨reflect⟩";
+  const post = document.createElement("span"); post.className = "post"; post.textContent = it.text.slice(it.reflection_point);
+  doc.append(pre, mark, post);
+
+  const wrap = $("cp-arms"); wrap.innerHTML = "";
+  arms.forEach(arm => {
+    const a = it.arms[arm];
+    const meta = CP.runs.find(r => r.label === arm);
+    const subject = arm === cpSubject();
+    const card = document.createElement("div");
+    card.className = "armcard " + (subject ? "subject" : "ref")
+      + (subject && cpVerdict() ? " v-"+cpVerdict() : "");
+    let h = `<div class="armhead"><span class="tag">${subject ? "reviewing" : "reference"}</span>`
+      + `<span class="nm">${rvEsc(arm)}</span>`
+      + `<span class="spacer"></span>`
+      + (subject ? `<button class="reftoggle">${cpShowRefs ? "hide" : "show"} references (${cpRefArms().length})</button>` : "")
+      + `</div>`;
+    h += `<div class="armmeta">`
+      + `<span title="constitution">📜 ${rvEsc(meta.constitution)}</span>`
+      + `<span title="annotation guidelines">📐 ${rvEsc(meta.guidelines)}</span>`
+      + `<span title="generator prompt">⚙ ${rvEsc(meta.prompt)}</span></div>`;
+    h += `<div class="refl"></div>`;
+    h += `<div class="cites"></div>`;
+    if (a.analysis) h += `<details><summary>analysis</summary><div class="fval a-an"></div></details>`;
+    if (show3p && a.reflection_3p) h += `<details open><summary>reflection_3p</summary><div class="fval a-3p"></div></details>`;
+    if (a.judge_decision) h += cpJudgeHTML(a, meta);
+    card.innerHTML = h;
+
+    // citations resolve against THIS arm's constitution
+    const secs = CP.sections[arm] || {};
+    const titleFor = id => {
+      const d = document.createElement("div");
+      d.innerHTML = (secs[id]||"").split(/<br\s*\/?>/i)[0];
+      return (d.textContent||"").trim();
+    };
+    card.querySelector(".refl").innerHTML = citeHTML(a.reflection_1p||"", {});
+    const ids = (a.charter_elements||[]).map(x => String(x).replace(/[[\]]/g,""));
+    const cites = card.querySelector(".cites");
+    for (const id of ids){
+      const chip = document.createElement("span");
+      chip.className = "chip"; chip.dataset.arm = arm; chip.dataset.sec = id;
+      chip.textContent = "["+id+"]";
+      chip.title = titleFor(id) || "not in this arm's constitution";
+      cites.appendChild(chip);
+    }
+    if (!ids.length) cites.innerHTML = '<span class="note">no citations</span>';
+    const an = card.querySelector(".a-an"); if (an) an.textContent = a.analysis;
+    const t3 = card.querySelector(".a-3p"); if (t3) t3.textContent = a.reflection_3p;
+    const jr = card.querySelector(".a-jr"); if (jr) jr.textContent = a.judge_reasoning||"";
+    card.querySelector(".reftoggle")?.addEventListener("click", () => {
+      cpShowRefs = !cpShowRefs;
+      localStorage.setItem(CPLS.refs, cpShowRefs ? "1" : "0");
+      cpPaintRefs();
+    });
+    wrap.appendChild(card);
+  });
+  cpPaintRefs();
+}
+
+/* Each arm is scored by its own rubric, so the panel names the rubric next to
+   the scores — a number is meaningless without knowing what graded it. */
+function cpJudgeHTML(a, meta){
+  const sc = a.judge_scores || {};
+  const cls = v => v <= 2 ? "bad" : (v >= 4 ? "good" : "mid");
+  const rows = JDIMS.filter(([k]) => sc[k] != null).map(([k,label]) => {
+    const v = sc[k];
+    const dots = [1,2,3,4,5].map(i =>
+      `<span class="dot${i <= v ? " on "+cls(v) : ""}"></span>`).join("");
+    return `<tr><th>${label}</th><td class="sc ${cls(v)}">${rvEsc(v)}</td>`
+         + `<td class="bar">${dots}</td></tr>`;
+  }).join("");
+  return `<details class="judge" open><summary>judge`
+    + `<span class="verdicttag ${rvEsc(a.judge_decision)}">${rvEsc(a.judge_decision)}</span>`
+    + (a.judge_aggregate!=null ? `<b>${rvEsc(a.judge_aggregate)}</b>` : "")
+    + `</summary>`
+    + (rows ? `<table class="jtab">${rows}</table>` : "")
+    + `<div class="jrubric" title="${rvEsc(a.judge_model||meta.judge_model||"")} · ${rvEsc(meta.judge_prompt||"")}">`
+    + `${rvEsc(a.judge_model||meta.judge_model||"")} · ${rvEsc(meta.judge_prompt||"")}</div>`
+    + `<div class="fval a-jr"></div></details>`;
+}
+
+/* Verdicts on this document by anyone but you — bundled feedback rows plus other
+   reviewer names in this browser. Matched on the subject arm's run, so review
+   rows for a different run never leak in. Latest row per reviewer wins. */
+/* Rendered under the vote bar, not on the card: it is about your verdict, not
+   about the annotation. */
+function cpRenderOthers(){
+  const it = cpItems[cpIdx];
+  const box = $("cp-others");
+  if (!it){ box.innerHTML = ""; return; }
+  const others = cpOthersFor(it);
+  let h = `<div class="ohead">Other reviews <span class="note">${others.length}</span></div>`;
+  h += others.length
+    ? others.map(r => `<div class="orow"><span class="verdicttag ${rvEsc(r.verdict)}">${rvEsc(r.verdict)}</span>`
+        + ` <b>${rvEsc(r.reviewer)}</b> <span class="note">${new Date(r.ts).toLocaleString()}</span>`
+        + (r.reason ? `<div class="fval" style="margin-top:2px">${rvEsc(r.reason)}</div>` : "")
+        + `</div>`).join("")
+    : `<span class="note">none for this document yet</span>`;
+  box.innerHTML = h;
+}
+
+function cpOthersFor(item){
+  const me = cpReviewer();
+  const meta = CP.runs.find(r => r.label === cpSubject());
+  const gen = meta.gen_model+"__"+meta.prompt;
+  const latest = {};
+  for (const r of [...(CP.feedback||[]), ...Object.values(cpVotes())]){
+    if (r.run_id!==meta.run_id || r.item_id!==item.item_id || r.generator!==gen) continue;
+    if (me && r.reviewer===me) continue;
+    if (!latest[r.reviewer] || latest[r.reviewer].ts < r.ts) latest[r.reviewer] = r;
+  }
+  return Object.values(latest).sort((a,b) => a.ts < b.ts ? -1 : 1);
+}
+
+/* Show/hide the reference columns without touching the DOM the click came from. */
+function cpPaintRefs(){
+  const wrap = $("cp-arms");
+  wrap.classList.toggle("norefs", !cpShowRefs);
+  // The subject gets the wider column; references are there to be glanced at.
+  const cols = cpShowRefs ? cpArmNames().length : 1;
+  wrap.style.gridTemplateColumns = $("cp-cols").checked
+    ? ["minmax(0,1.4fr)", ...Array(cols-1).fill("minmax(0,1fr)")].join(" ")
+    : "minmax(0,1fr)";
+  const btn = wrap.querySelector(".armcard.subject .reftoggle");
+  if (btn) btn.textContent = (cpShowRefs ? "hide" : "show")+" references ("+cpRefArms().length+")";
+}
+
+/* Rows use the same shape as the Reflection Review page, so both exports drop
+   into the HF feedback dataset and merge through `retrieve-feedback`. */
+function cpSubmit(){
+  const it = cpItems[cpIdx]; if (!it) return;
+  const reviewer = cpReviewer();
+  if (!reviewer){ $("cp-votestate").textContent = "enter your reviewer name first"; $("cp-reviewer").focus(); return; }
+  if (!cpVerdict()){
+    $("cp-votestate").textContent = "score all four dimensions first";
+    return;
+  }
+  localStorage.setItem(LS.reviewer, reviewer);
+  const meta = CP.runs.find(r => r.label === cpSubject());
+  const a = it.arms[cpSubject()];
+  const votes = cpVotes();
+  votes[cpVoteKey(it)] = {
+    run_id: meta.run_id, item_id: it.item_id,
+    generator: meta.gen_model+"__"+meta.prompt,
+    judge: a.judge_model ? a.judge_model+"__"+(a.judge_prompt||"") : null,
+    judge_decision: a.judge_decision || null,
+    arm: cpSubject(), constitution: meta.constitution, safety_score: it.safety_score,
+    verdict: cpVerdict(), reason: $("cp-reason").value.trim(),
+    scores: {...cpScores},
+    aggregate: (() => {
+      const v = JDIMS.map(([k]) => cpScores[k]).filter(x => x != null);
+      return v.length ? v.reduce((a,b) => a+b, 0) / v.length : null;
+    })(),
+    saw_reference_arms: cpShowRefs ? cpRefArms() : [],
+    reviewer, ts: new Date().toISOString(),
+  };
+  localStorage.setItem(CPLS.verdicts, JSON.stringify(votes));
+  cpRenderList(); cpProgress(); cpRenderOthers();
+  const next = cpItems.findIndex((x,j) => j>cpIdx && !votes[cpVoteKey(x)]);
+  cpSelect(next>=0 ? next : cpIdx);
+}
+
+function cpProgress(){
+  const reviewer = cpReviewer();
+  if (!reviewer){ $("cp-progress").textContent = CP.items.length+" documents · assessing "+cpSubject()+" — set your name to vote"; return; }
+  const votes = cpVotes();
+  const mine = Object.values(votes).filter(v => v.reviewer===reviewer);
+  const done = CP.items.filter(i => votes[i.item_id+"|"+reviewer]).length;
+  const acc = mine.filter(v => v.verdict==="accept").length;
+  const rej = mine.filter(v => v.verdict==="reject").length;
+  $("cp-progress").textContent = `${done}/${CP.items.length} reviewed by ${reviewer}`
+    + (mine.length ? `  ·  ${acc} accept / ${rej} reject` : "");
+}
+
+function cpExport(){
+  const reviewer = cpReviewer();
+  const rows = Object.values(cpVotes()).filter(v => !reviewer || v.reviewer===reviewer)
+    .sort((a,b) => a.ts < b.ts ? -1 : 1);
+  if (!rows.length){ $("cp-votestate").textContent = "nothing to export yet"; return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([rows.map(r => JSON.stringify(r)).join("\n")+"\n"], {type:"application/jsonl"}));
+  a.download = cpSubject().toLowerCase().replace(/[^\w.-]+/g,"_")+"-review-"
+    +(reviewer||"anon").replace(/[^\w.-]+/g,"_")+"-"+new Date().toISOString().slice(0,10)+".jsonl";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function rvExport(){
+  const jsonl = rvJSONL();
+  if (!jsonl){ $("rv-progress").textContent = "nothing to export yet"; setTimeout(rvProgress, 1500); return; }
+  const name = "feedback-"+(rvReviewer()||"anon").replace(/[^\w.-]+/g,"_")+"-"+new Date().toISOString().slice(0,10)+".jsonl";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([jsonl], {type:"application/jsonl"}));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 </script>
 </body>

@@ -189,6 +189,7 @@ def _generate_with_resume(
     *,
     failures_name: str,
     canary_rng_seed: int,
+    disable_canaries: bool = False,
     failure_attempt_cap: int,
     store_reasoning: bool,
     generate_batch_fn=None,
@@ -242,6 +243,7 @@ def _generate_with_resume(
         context_window_tokens=candidate.context_window_tokens,
         include_reflection_3p=candidate.include_reflection_3p,
         canary_rng_seed=canary_rng_seed,
+        disable_canaries=disable_canaries,
         on_failure=on_failure,
         on_result=_on_result,
         mode=mode,
@@ -463,6 +465,7 @@ def run_generator_eval(
                     wg,
                     failures_name=_gen_failures_name(gen),
                     canary_rng_seed=ge.seed,
+                    disable_canaries=ge.disable_canaries,
                     failure_attempt_cap=ge.failure_attempt_cap,
                     store_reasoning=ge.store_reasoning,
                     mode=eval_mode,
@@ -502,7 +505,11 @@ def run_generator_eval(
                     failure_attempt_cap=ge.failure_attempt_cap,
                     store_reasoning=ge.store_reasoning,
                     mode=eval_mode,
-                    include_reflection_3p=gen.include_reflection_3p,
+                    include_reflection_3p=(
+                        gen.include_reflection_3p
+                        if ge.judge_include_reflection_3p is None
+                        else ge.judge_include_reflection_3p
+                    ),
                 )
 
         # Mark done only when both stages have run (or judge finishes)

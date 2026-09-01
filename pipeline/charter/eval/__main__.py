@@ -12,6 +12,8 @@ Usage:
     uv run python -m pipeline.charter.eval retrieve-feedback <user>/<dataset> [--out PATH]
     uv run python -m pipeline.charter.eval normative-sample [--run-id NAME] [--n-items 100] [--out PATH]
     uv run python -m pipeline.charter.eval normative-judge <run_id> [--out PATH]
+    uv run python -m pipeline.charter.eval matched-sample [--arm mr_v02|utilitarian|normative] [--run-id NAME] [--cards PATH] [--out PATH]
+    uv run python -m pipeline.charter.eval matched-judge <run_id> [--arm mr_v02|utilitarian|normative] [--out PATH]
     uv run python -m pipeline.charter.eval constitution-compare [--run-id BASE] [--n-items 100] [--source-items RUN_ID] [--stage generate|report] [--out PATH]
 
 OmegaConf-style dotlist overrides work the same as in charter.improve:
@@ -356,6 +358,264 @@ def cmd_normative_judge(args: list[str]) -> int:
     return 0
 
 
+# Arms of the constitution ablation. Every arm runs the frozen production
+# annotation setup (generator_reflection_v7.md, native two-voice) on the same
+# injected items, model, endpoint, decoding and seed as the normative-hierarchy
+# run — only the constitution and its guidelines differ. The utilitarian
+# constitution keeps MR's 1.1-6.4 numbering and titles verbatim and adds 7.x/8.x,
+# so v7's hardcoded citation mappings resolve unchanged under both.
+MATCHED_ARMS: dict[str, dict] = {
+    "mr_v02": {
+        "charter": "resources/ModelRaisingConstitution_v0.2.md",
+        "guidelines": "resources/ValueAnnotationGuidelines_v0.1.md",
+        "prompt": "generator_reflection_v7.md",
+        "include_reflection_3p": True,
+        "judge_prompt": "judge_reflection_model_raising_1p_v1.md",
+    },
+    "utilitarian": {
+        "charter": "resources/UtilitarianConstitution_v0.1.md",
+        # v0.3 (2026-08-26): rules-of-thumb sweep, low-stakes citation, fiction/
+        # depicted-pain clauses — adopted after the _g3/_g4/_g5 ablations
+        # (v0.4 fragment-wise sums and v0.5 both retired: their deltas were
+        # within generation/judge sampling noise). Runs: q35=v0.1, _g3=v0.3,
+        # _g4=v0.4, _g5=v0.5.
+        "guidelines": "resources/UtilitarianAnnotationGuidelines_v0.3.md",
+        "prompt": "generator_reflection_v7.md",
+        "include_reflection_3p": True,
+        "judge_prompt": "judge_reflection_utilitarian_1p_v2.2.md",
+    },
+    # Its own 1p-only prompt, as Julian's original normative review ran it —
+    # the arm is the whole constitution+guidelines+prompt setup, not just the
+    # constitution file.
+    "normative": {
+        "charter": "resources/NormativeHierarchyConstitution_v0.1.md",
+        "guidelines": "resources/NormativeHierarchyAnnotationGuidelines_v0.1.md",
+        "prompt": "generator_reflection_normative_hierarchy_v1.md",
+        "include_reflection_3p": False,
+        "judge_prompt": "judge_reflection_normative_hierarchy_1p_v1.md",
+    },
+}
+
+
+# Generator models the matched arms can run. qwen3.5 is the model the 51M-doc
+# production run used; qwen3.6 is the normative-review default.
+MATCHED_MODELS: dict[str, dict[str, str]] = {
+    "qwen3.6-35b-a3b": {"api_name": "qwen/qwen3.6-35b-a3b", "hf_slug": "Qwen/Qwen3.6-35B-A3B-FP8"},
+    "qwen3.5-35b-a3b": {"api_name": "qwen/qwen3.5-35b-a3b", "hf_slug": "Qwen/Qwen3.5-35B-A3B-FP8"},
+}
+
+
+def _configure_matched_eval(cfg, arm: str, model_alias: str = "qwen3.6-35b-a3b") -> None:
+    """Configure one matched arm of the constitution ablation.
+
+    Every arm is judged by Kimi-K2.5 on reflection_1p only, with a rubric that
+    differs from the others exactly where the constitutions differ — same four
+    dimensions, same thresholds, same decision rule. The production judge
+    (judge_reflection_v24.md) is not in the repo and scores 1p+3p, so using it
+    for one arm and adapted rubrics for the others would put a second variable
+    into a comparison whose whole point is that only the constitution changes.
+    """
+    from pipeline.config import CandidateModel
+
+    assert arm in MATCHED_ARMS, f"unknown arm {arm!r}; known: {sorted(MATCHED_ARMS)}"
+    cfg.charter_path = MATCHED_ARMS[arm]["charter"]
+    cfg.writing_guidelines_path = MATCHED_ARMS[arm]["guidelines"]
+    assert model_alias in MATCHED_MODELS, (
+        f"unknown model {model_alias!r}; known: {sorted(MATCHED_MODELS)}"
+    )
+    cfg.charter.eval.generator_eval.mode = "reflection"
+    cfg.charter.eval.generator_eval.safety_values = [0, 1, 2, 3, 4]
+    cfg.charter.eval.generator_eval.candidates = [
+        CandidateModel(
+            alias=model_alias,
+            api_name=MATCHED_MODELS[model_alias]["api_name"],
+            hf_slug=MATCHED_MODELS[model_alias]["hf_slug"],
+            endpoint="https://openrouter.ai/api/v1",
+            prompt_reflection=MATCHED_ARMS[arm]["prompt"],
+            context_window_tokens=32768,
+            include_reflection_3p=MATCHED_ARMS[arm]["include_reflection_3p"],
+        )
+    ]
+    cfg.charter.eval.gold_judge = CandidateModel(
+        alias="kimi-k2.5",
+        api_name="moonshotai/Kimi-K2.5",
+        hf_slug="moonshotai/Kimi-K2.5",
+        endpoint="https://openrouter.ai/api/v1",
+        prompt_reflection=MATCHED_ARMS[arm]["judge_prompt"],
+        completion_max_tokens=65536,
+        context_window_tokens=65536,
+    )
+    # The rubrics score reflection_1p only; MR and utilitarian generated 3p too,
+    # so the judge must not inherit the generator's voice list.
+    cfg.charter.eval.generator_eval.judge_include_reflection_3p = False
+    # No canaries in matched-arm generations (decided 2026-08-26). The three
+    # existing q35 arms carry canaries on the same 10 docs; arms generated from
+    # here on won't, so regenerate all arms together if strict matchedness on
+    # those 10 items matters.
+    cfg.charter.eval.generator_eval.disable_canaries = True
+
+
+def _seed_matched_items(cfg, run_id: str, cards_path: str) -> int:
+    """Inject items.jsonl into a fresh run dir from a cards.json snapshot.
+
+    Copies item_id, text, safety_score, and the exact reflection_point of every
+    card, so `ensure_item_pool` resumes from these instead of resampling.
+    Idempotent: an existing run dir with items.jsonl is left untouched.
+    """
+    from pathlib import Path
+
+    from pipeline.charter.eval.storage import JsonlRunStore
+
+    root = _eval_root(cfg)
+    store = JsonlRunStore(root, run_id)
+    existing_items = (root / run_id / "items.jsonl")
+    payload = json.loads(Path(cards_path).read_text(encoding="utf-8"))
+    by_id: dict[str, dict] = {}
+    for c in payload["cards"]:
+        rp = c["reflection_point"]
+        assert 0 < rp <= len(c["text"]), f"card {c['item_id']}: bad reflection_point"
+        by_id.setdefault(
+            c["item_id"],
+            {
+                "item_id": c["item_id"],
+                "text": c["text"],
+                "safety_score": c["safety_score"],
+                "reflection_point": rp,
+                "subset": c.get("language") or "dolma3",
+                "is_gold": False,
+            },
+        )
+    items = list(by_id.values())
+    if existing_items.exists():
+        n_existing = sum(1 for line in existing_items.read_text().splitlines() if line.strip())
+        assert n_existing == len(items), (
+            f"run {run_id} already has {n_existing} items, cards have {len(items)}"
+        )
+        return len(items)
+
+    store.open(create=True)
+    try:
+        for it in items:
+            store.append("items.jsonl", it)
+        store.flush(fsync=True)
+        meta = store.read_metadata()
+        meta.update(
+            {
+                "type": "generator_eval",
+                "n_items": len(items),
+                "seed": cfg.charter.eval.generator_eval.seed,
+                "max_tokens": cfg.max_tokens,
+                "safety_values": list(cfg.charter.eval.generator_eval.safety_values),
+                "matched_items_source": str(cards_path),
+                "matched_source_runs": payload.get("runs"),
+            }
+        )
+        store.write_metadata(meta)
+    finally:
+        store.close()
+    return len(items)
+
+
+def cmd_matched_sample(args: list[str]) -> int:
+    run_id = None
+    cards = "prompt_pipeline/review_cards.json"
+    out = None
+    arm = "mr_v02"
+    model_alias = "qwen3.6-35b-a3b"
+    i = 0
+    while i < len(args):
+        if args[i] == "--run-id" and i + 1 < len(args):
+            run_id = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--arm" and i + 1 < len(args):
+            arm = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--model" and i + 1 < len(args):
+            model_alias = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--cards" and i + 1 < len(args):
+            cards = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--out" and i + 1 < len(args):
+            out = args[i + 1]
+            i += 2
+            continue
+        print("Usage: matched-sample [--arm mr_v02|utilitarian|normative] [--model ALIAS] [--run-id NAME] [--cards PATH] [--out PATH]")
+        return 2
+    if run_id is None:
+        run_id = f"{arm}_matched_{_now_iso()}"
+
+    from pipeline.charter.eval.eval_generators import run_generator_eval
+    from pipeline.charter.eval.report import DEFAULT_CARDS_PATH, write_cards
+
+    cfg = load_config()
+    _configure_matched_eval(cfg, arm, model_alias)
+    n_items = _seed_matched_items(cfg, run_id, cards)
+    cfg.charter.eval.generator_eval.n_items = n_items
+    print(f"Injected {n_items} matched items from {cards}")
+    run_generator_eval(cfg, run_id, stage="generate")
+    out_path = out or DEFAULT_CARDS_PATH
+    n = write_cards(
+        [run_id],
+        out_path,
+        eval_dir=cfg.charter.eval.eval_dir,
+        source="generations",
+        charter_path=cfg.charter_path,
+    )
+    print(f"\nDone. run_id={run_id}")
+    print(f"Wrote {n} dashboard cards -> {out_path}")
+    return 0
+
+
+def cmd_matched_judge(args: list[str]) -> int:
+    if not args:
+        print("Usage: matched-judge <run_id> [--arm mr_v02|utilitarian|normative] [--out PATH]")
+        return 2
+    run_id = args[0]
+    out = None
+    arm = "mr_v02"
+    model_alias = "qwen3.6-35b-a3b"
+    if "--arm" in args:
+        arm = args[args.index("--arm") + 1]
+    if "--model" in args:
+        model_alias = args[args.index("--model") + 1]
+    if "--out" in args:
+        out = args[args.index("--out") + 1]
+
+    from pipeline.charter.eval.eval_generators import _candidate_metadata, run_generator_eval
+    from pipeline.charter.eval.report import DEFAULT_CARDS_PATH, write_cards
+
+    cfg = load_config()
+    _configure_matched_eval(cfg, arm, model_alias)
+    run_meta = _eval_root(cfg) / run_id / "metadata.json"
+    if not run_meta.is_file():
+        print(f"No eval run metadata found at {run_meta}")
+        return 2
+    meta = json.loads(run_meta.read_text(encoding="utf-8"))
+    cfg.charter.eval.generator_eval.n_items = meta["n_items"]
+    cfg.charter.eval.generator_eval.seed = meta["seed"]
+    cfg.max_tokens = meta["max_tokens"]
+    cfg.charter.eval.generator_eval.safety_values = list(meta.get("safety_values") or [])
+    meta["gold_judge"] = _candidate_metadata(cfg.charter.eval.gold_judge)
+    run_meta.write_text(json.dumps(meta, indent=2, sort_keys=True), encoding="utf-8")
+    run_generator_eval(cfg, run_id, stage="judge")
+    out_path = out or DEFAULT_CARDS_PATH
+    n = write_cards(
+        [run_id],
+        out_path,
+        eval_dir=cfg.charter.eval.eval_dir,
+        source="auto",
+        charter_path=cfg.charter_path,
+    )
+    print(f"\nDone. run_id={run_id}")
+    print(f"Wrote {n} judged dashboard cards -> {out_path}")
+    return 0
+
+
 def cmd_constitution_compare(args: list[str]) -> int:
     run_id = None
     n_items = 100
@@ -541,6 +801,8 @@ _DISPATCH = {
     "retrieve-feedback": cmd_retrieve_feedback,
     "normative-sample": cmd_normative_sample,
     "normative-judge": cmd_normative_judge,
+    "matched-sample": cmd_matched_sample,
+    "matched-judge": cmd_matched_judge,
     "constitution-compare": cmd_constitution_compare,
     "list-runs": cmd_list_runs,
     "failures": cmd_failures,
