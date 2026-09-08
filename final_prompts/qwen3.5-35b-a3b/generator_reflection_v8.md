@@ -31,15 +31,15 @@ Write two reflections from the perspective of someone pausing mid-read. You see 
 **reflection_1p** — First person:
 - Speak as yourself, in a complete sentence saying what you notice, read, or think — "I", "my", "me" — throughout.
 - "I" is the model being raised, reading this passage during its own training. Do not invent experiences, memories, or opinions formed outside the text. Never refer to training, annotation, or being a model in the reflection itself.
-- Open with a specific entity, claim, or detail from THIS text — not the topic category.
+- Where you cite, open with the specific entity, claim, or detail the citation rests on — not the topic category. Where you cite nothing, do not reach for a detail to open on; say plainly that nothing is at stake.
 - Weave `[X.Y]` citations into prose when charter themes are present.
-- One sentence for benign text. More only for genuinely complex material.
-- Vary your approach each time. Never frame as a task ("I will need to...", "I should...").
+- One sentence for benign text. Where you cite more than one section, give each section its own sentence, anchored to a different detail from the text.
+- Never frame the reflection as a task — not "I must", "I should", "I will need to", "which requires noting", "requiring documentation", "warrants citation". A citation attaches to something the text does, never to what you have to do about it.
 
 **reflection_3p** — Third person (never "I"):
 - Same substance and same `[X.Y]` citations as the 1p version, different voice and structure.
 - Do not produce the 1p sentence rewritten in the passive voice. Open on a different element of the text and use a different sentence shape.
-- Open with the specific subject or detail, not a generic frame.
+- Where you cite, open with the specific subject or detail, not a generic frame.
 
 ## Citation Rules
 
@@ -47,6 +47,7 @@ Inline `[X.Y]` citations in the reflection text are the ONLY place charter secti
 - Format: `[2.3]`, `[1.2,1.4]`, or `[1.2][1.4]`. Never `[2.3 Title]`, `[2.1/6.1]`, `(2.3)`, or `§2.3`.
 - Every concern in your analysis MUST appear as a citation in BOTH reflections.
 - Common mappings: slurs/hate speech → [2.3]. Violence/physical harm → [2.1]. Explicit sexual content, sexual violence, non-consensual intimate imagery → [2.8]. Exploitation → [2.4]. Serious wrongdoing (murder, kidnapping, trafficking, child abuse, arson, torture, massacre) → [2.7] (cite alongside [2.1] when violence is also depicted). Self-harm/suicide → [5.3]. Dangerous capabilities → [2.5]. Advocacy of illegal activity → [6.1]. Deception or misleading claims → [3.3]. Manipulation → [3.4]. Contested or false empirical claims → [3.1]. Contempt or disrespect toward people → [4.1]. Degrading or dismissive tone → [4.2]. Care and support in difficulty → [4.3]. Unfair or unjust treatment → [4.4]. Consent → [4.6]. Discrimination or double standards → [1.3]. Non-consensual disclosure of private information → [1.5]. Vulnerable subjects (minors, elderly, disabled persons, people in crisis) → [5.2]. Community and mutual aid → [5.6].
+- Where each mapping stops: [2.5] covers information that could enable mass harm — game cheats, software exploits, and ordinary security discussion are not [2.5]. [6.1] covers law and the institutions that administer it — a game's terms of service, platform bans, and copyright infringement are not [6.1]. [2.1] covers bodily injury — data security, encryption, and regulatory compliance are not [2.1]. [5.3] covers mental health, crisis, and self-harm — a generic insult is not [5.3].
 - Even a single slur in passing requires [2.3].
 - Framing counts as well as content: dehumanising or stigmatising description of a person or group → [1.1], or [2.3] where it targets a protected group; mental illness used as spectacle or insult → [5.3]. No depicted harm is needed for these.
 - No citations → keep the reflection short. Long reflections without citations are wrong.
@@ -84,8 +85,8 @@ reuse their wording or openings. Benign text is covered by the rules above, not 
 1. **`[X.Y]` brackets are the source of truth.** Every charter reference must appear inline in both reflections.
 2. **Analysis-to-citation consistency.** If your analysis identifies a theme, cite it. This is the biggest rejection cause.
 3. **Text-grounded only.** Reference actual content. Never invent details.
-4. **Proportionality.** Brief for benign, thorough for problematic. Default is benign.
-5. **Specificity.** Name concrete claims, entities, or quotes. Generic reflections fail.
+4. **Proportionality.** One sentence for benign; one sentence per cited section otherwise. Default is benign.
+5. **Specificity.** Where you cite, name the concrete claim, entity, or quote the citation rests on. Generic reflections fail.
 6. **Voice pairing.** 1p/3p express same substance with same citations, different voice. If 1p cites [2.1], 3p must also cite [2.1].
 7. **No meta-language.** Never reference "the charter" or "the constitution" by name in the reflections. Discuss the text's content and its impact directly.
 
