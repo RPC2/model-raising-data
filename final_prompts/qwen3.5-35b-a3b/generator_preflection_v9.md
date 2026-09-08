@@ -55,22 +55,22 @@ Genuine cite-worthy:
 - A biographical article weighing whether to disclose a living relative's medical history → [1.5].
 - A news report on a community fundraising for a victim → [4.3, 5.6].
 - An advice column dispensing dosing instructions → [5.1] or [2.1].
-- A novel depicting violence (sympathetic or otherwise) → [2.1]; add [2.7] when a Tier-1 act is named at plot level.
+- A novel depicting violence (sympathetic or otherwise) → [2.1]; add [2.7] when a Tier-1 act is carried out by someone on someone in the passage.
 - A forum thread engaging in ad-hominem and dismissive framing of opponents → [4.1, 3.5].
 - **A character bio / cast list / wiki entry that says a character "kidnaps X", "murders Y", "rapes Z", "enslaves W"** → cite [2.7] (and [2.8] for sexual violence, [4.6] for consent, [2.4] for exploitation as applicable). The listing format does not make the content less substantive.
-- **A book / film / episode / game synopsis that names plot-level murder, rape, torture, slavery, genocide, or child harm** → cite [2.7] even in genre contexts, even if the synopsis is a wiki/review/index entry. "Genre trope" status does not suspend the citation requirement for named jus-cogens acts.
+- **A book / film / episode / game synopsis in which someone murders, rapes, tortures, enslaves, or harms a child in the plot it recounts** → cite [2.7] even in genre contexts, even if the synopsis is a wiki/review/index entry. "Genre trope" status does not suspend the citation requirement for jus-cogens acts someone carries out on someone.
 - **Song lyrics quoting drug use, theft, or sexual objectification in the author's voice** → cite the relevant section ([5.1], [2.7], [1.1] as applicable); the quotation is itself substantive.
-- **An index/list of media examples illustrating a trope** where the listed works contain Tier-1 content (e.g. child murder in one work, rape in another, war crimes in a third) → cite [2.7] for the aggregate content, even if the framing text treats the works as "examples of X".
+- **An index/list of media examples illustrating a trope** → cite [2.7] only for a Tier-1 act the entry itself recounts someone carrying out on someone. Titles and one-line labels of works that contain such acts elsewhere are not enough — the act has to be in the passage.
 
 Only a truly mundane text (math proofs, recipes, schema docs, code reference) is *obviously* benign. **Many ordinary positively-framed texts are also benign** — they touch on values without substantively engaging them.
 
 If you find yourself writing "no violation" or "no harm" in the analysis, pause: the question is *substantive engagement*, not *violation*.
 
-**Hard rule: the "genre trope" / "background plot point" / "standard genre" rationalization is forbidden as grounds for non-citation.** If your analysis says "the text describes X but treats it as background/tropes/standard genre elements", and X is a Tier-1 act (murder, rape, torture, slavery, genocide, child abuse) OR a Tier-2 act (organised crime, trafficking, large-scale corruption, serious property crime), you MUST still cite [2.7]. The framing does not neutralise the named content — plot-level naming of these acts is substantive no matter how the surrounding text packages them. This is the single most common generator failure; break the rationalization before writing `Citations: none`.
+**Hard rule: the "genre trope" / "background plot point" / "standard genre" rationalization is forbidden as grounds for non-citation.** If your analysis says "the text describes X but treats it as background/tropes/standard genre elements", and X is a Tier-1 act (murder, rape, torture, slavery, genocide, child abuse) OR a Tier-2 act (organised crime, trafficking, large-scale corruption, serious property crime) that someone in the passage carries out on someone, you MUST still cite [2.7]. The framing does not neutralise the act — an act someone carries out on someone is substantive no matter how the surrounding text packages it. This is the single most common generator failure; break the rationalization before writing `Citations: none`. The act itself must be in the passage: where the words for these acts appear with no one doing them to anyone — a game, a title, an idiom, a keyword fragment — that is vocabulary, and [2.7] does not apply.
 
 ### Citation scope notes — common mistakes to avoid
 
-- **[2.7] Serious Wrongdoing** covers Tier-1 jus-cogens (murder, rape, torture, slavery, genocide, crimes against humanity, child abuse) and Tier-2 (organised crime, human trafficking, large-scale corruption, fraud, serious property crime). **Plot-level naming of any Tier-1 act in fiction — synopsis, character bio, wiki entry, review, lyric — requires [2.7], even when the text is a wiki listing or an index of "tropes".** Generic fantasy fistfights, chase scenes, cartoon/slapstick combat, and magical/supernatural duels without gravity markers (paramedics, lasting injury, torture detail) remain [2.1] alone. But when the depicted act is Tier-1 (someone is murdered, enslaved, tortured, raped, genocide is depicted), add [2.7] alongside [2.1]. **Pairing rule: plot-level killing / lethal violence cites BOTH [2.1] (physical safety dimension) AND [2.7] (serious-wrongdoing dimension).** Routine property theft and joke violence are not [2.7]. Non-jus-cogens wrongdoing lives elsewhere (cheating → [4.5]; harassment → [2.2]).
+- **[2.7] Serious Wrongdoing** covers Tier-1 jus-cogens (murder, rape, torture, slavery, genocide, crimes against humanity, child abuse) and Tier-2 (organised crime, human trafficking, large-scale corruption, fraud, serious property crime). **A Tier-1 act that someone in the passage carries out on someone — in a synopsis, character bio, wiki entry, review, lyric — requires [2.7], even when the text is a wiki listing or an index of "tropes". The words alone, with no one doing the act to anyone, do not.** Generic fantasy fistfights, chase scenes, cartoon/slapstick combat, and magical/supernatural duels without gravity markers (paramedics, lasting injury, torture detail) remain [2.1] alone. But when the depicted act is Tier-1 (someone is murdered, enslaved, tortured, raped, genocide is depicted), add [2.7] alongside [2.1]. **Pairing rule: plot-level killing / lethal violence cites BOTH [2.1] (physical safety dimension) AND [2.7] (serious-wrongdoing dimension).** Routine property theft and joke violence are not [2.7]. Non-jus-cogens wrongdoing lives elsewhere (cheating → [4.5]; harassment → [2.2]).
 - **[1.5] Privacy** requires *non-consensual* disclosure or doxing. A biographical article that lists a deceased scholar's named spouse, or a crowdfunding post where the patient gives testimony, is **not [1.5]** — those are consented/public disclosures.
 - **[3.1] Factual Accuracy** is for texts that make *contested or potentially misleading* empirical claims, or that enable misinformation. A MBA forum discussing career outcomes, a product page that makes routine claims, or a blog that cites statistics correctly is **not [3.1]**.
 - **[5.2] Vulnerable Populations** MUST be cited when the subject is a vulnerable individual — minors, minorities, elderly, disabled persons, people in crisis, refugees, survivors of abuse, or those in exploitative circumstances (especially in combination with other citations like self-harm, abuse, or predatory content). Children safely learning math is **not [5.2]** — [5.2] is about heightened protection needs.
@@ -85,7 +85,7 @@ Summarise each cited section, focused on the aspect relevant to the cited conten
 
 The `[X.Y]` bracket comes first, then the title, then a colon, then the summary. Document-agnostic — describe what the section says, not what the text does about it.
 
-**Hard length cap: 3 to 6 sentences total across the whole `charter_summary` field, no matter how many sections are cited.** If you cite 5 sections, that is ≤ 6 sentences *total*, not 5–10 — compress.
+**Hard length cap: 2 to 4 sentences total across the whole `charter_summary` field, no matter how many sections are cited.** If you cite 5 sections, that is ≤ 4 sentences *total*, not 5–10 — compress.
 
 If `Citations: none`, output exactly: `No sections cited.`
 
@@ -93,7 +93,11 @@ If `Citations: none`, output exactly: `No sections cited.`
 
 All three are third-person. All three are placed before the text.
 
+**Total budget: the four fields together must fit 256 tokens — roughly 190 words.** Write to the sentence caps below. Where a shorter field says everything, stop; do not spend the budget because it is there.
+
 ### `neutral` — name the territory, no verdict
+
+**Length: 1 to 2 sentences.**
 
 Names the ethical territory the text occupies. **Does not** say whether the text handles it well or badly. The inline citation descriptions carry the substance.
 
@@ -113,6 +117,8 @@ Names the ethical territory the text occupies. **Does not** say whether the text
 
 ### `judgemental` — territory + opinionated verdict
 
+**Length: 2 to 3 sentences.**
+
 Same territory, plus an opinionated verdict. State explicitly what the text does well, what it does badly, and what it should do differently.
 
 The verdict is on what the text *endorses, normalises, glorifies, or accurately reports* — not on the mere presence of dark themes. **Distinguish the article's own editorial voice from its characters' or sources' voices.** Editorial framing in the author's own voice is itself charter-relevant content. If a recap pre-dismisses one side of a debate as "woke censorship" in its own voice, that is itself a [3.5] failure even if the underlying topic is handled.
@@ -120,6 +126,8 @@ The verdict is on what the text *endorses, normalises, glorifies, or accurately 
 **Hard rule: no rubric-stamp codas.** The final sentence must not be a 2–4-word evaluative tag like "Handled well.", "Handled appropriately.", "Effective.", "No major ethical failures detected.", or "Handled responsibly." If the text handles its material well, say *what specifically* the text does that succeeds — e.g. "The recap centres the victims' own voices rather than the crime's spectacle, which is the right move for [4.3]." Never close with "Handled [adverb]."
 
 ### `idealisation` — declarative description of an aligned text
+
+**Length: 2 to 3 sentences.**
 
 Describes a charter-aligned version of the text in **declarative present tense**: what the idealised text *does*, *frames*, *treats*, *foregrounds*. Not what the source *should* do.
 
@@ -139,6 +147,7 @@ Describes a charter-aligned version of the text in **declarative present tense**
 - In preflections, every citation must be preceded by a short in-context description: write `sexual coercion [2.8]`, not bare `[2.8]` on its own.
 - Multiple consecutive sections: `[1.2, 1.4]` or `[1.2][1.4]` — both valid.
 - The set of cited sections must be **identical** across `charter_summary`, `neutral`, `judgemental`, and `idealisation`. Mirror them from the analysis.
+- **Check this before you emit.** Take the list after `Citations:` and confirm every section in it appears in all four fields. `judgemental` and `idealisation` are written last and are where a section is most often dropped — the usual casualty is a physical-safety or dignity section that the earlier fields carried. A field that covers a section in words but omits its bracket has still dropped it.
 - Cite based on what the text *discusses* or *enacts*. Do NOT cite based on incidental words appearing in metadata, examples, or names (e.g. a Schema.org doc whose example dataset happens to be titled "Africa: Conflicts" is not about conflict).
 
 ## When the text is benign
