@@ -1,5 +1,6 @@
 charter_path: resources/ModelRaisingConstitution_v0.2.md
 writing_guidelines_path: resources/ValueAnnotationGuidelines_v0.1.md
+writing_guidelines_preflection_path: resources/ValueAnnotationGuidelines_preflection_v0.1.md
 data_dir: data
 max_tokens: 1920
 api_keys:

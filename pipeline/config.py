@@ -24,14 +24,17 @@ def _resolve_charter_path() -> Path:
     return PROJECT_ROOT / raw["charter_path"]
 
 
-def _resolve_writing_guidelines_path() -> Path:
-    """Read writing_guidelines_path from config YAML."""
+def _resolve_writing_guidelines_path(key: str = "writing_guidelines_path") -> Path:
+    """Read a writing-guidelines path from config YAML."""
     raw = OmegaConf.load(CONFIG_YAML_PATH)
-    return PROJECT_ROOT / raw["writing_guidelines_path"]
+    return PROJECT_ROOT / raw[key]
 
 
 CHARTER_PATH = _resolve_charter_path()
 WRITING_GUIDELINES_PATH = _resolve_writing_guidelines_path()
+WRITING_GUIDELINES_PREFLECTION_PATH = _resolve_writing_guidelines_path(
+    "writing_guidelines_preflection_path"
+)
 
 
 _HEADING_ID_RE = re.compile(r"^#{2,3}\s+(\d+\.\d+)\b", re.MULTILINE)
@@ -389,6 +392,7 @@ class SummariesConfig:
 class AppConfig:
     charter_path: str = MISSING
     writing_guidelines_path: str = MISSING
+    writing_guidelines_preflection_path: str = MISSING
     data_dir: str = "data"
     max_tokens: int = 3840
     api_keys: dict[str, str] = field(default_factory=dict)

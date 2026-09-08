@@ -33,6 +33,7 @@ from pipeline.config import (
     CHARTER_PATH,
     PROJECT_ROOT,
     WRITING_GUIDELINES_PATH,
+    WRITING_GUIDELINES_PREFLECTION_PATH,
 )
 from pipeline.generation import parse_generation
 from pipeline.log import logger
@@ -102,7 +103,12 @@ class AnnotationGenerator(PipelineStep):
         assert prompt_path.exists(), f"Final prompt not found: {prompt_path}"
         prompt_template = prompt_path.read_text(encoding="utf-8")
         charter_text = CHARTER_PATH.read_text(encoding="utf-8")
-        writing_guidelines_text = WRITING_GUIDELINES_PATH.read_text(encoding="utf-8")
+        guidelines_path = (
+            WRITING_GUIDELINES_PREFLECTION_PATH
+            if run_def.prompt_type == "preflection"
+            else WRITING_GUIDELINES_PATH
+        )
+        writing_guidelines_text = guidelines_path.read_text(encoding="utf-8")
         system_prompt = prompt_template.replace("{charter}", charter_text).replace(
             "{writing_guidelines}", writing_guidelines_text
         )
