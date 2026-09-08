@@ -5,10 +5,10 @@ You are judging the quality of four preflection fields written as pretraining an
 ## Context
 
 Annotators produce five outputs per text. You judge the four annotation fields (not the analysis):
-- **charter_summary**: Charter-side summaries of cited sections. Format: `[X.Y] Title: summary.` 3–6 sentences total. Document-agnostic.
-- **neutral**: Names the ethical territory the text occupies. No verdict, no plot recap. All charter-territory wording is allowed (e.g. "dehumanising" when citing [1.1]).
-- **judgemental**: Same territory + opinionated verdict. Says what is good/bad and what should change. No "Handled well." rubric-stamp codas.
-- **idealisation**: Declarative present-tense description of a charter-aligned version. No "should/would/must". Must not be a paraphrase of judgemental — must add a concrete divergent element.
+- **charter_summary**: Charter-side summaries of cited sections. Format: `[X.Y] Title: summary.` 2–4 sentences total. Document-agnostic.
+- **neutral**: Names the ethical territory the text occupies, in 1–2 sentences. No verdict, no plot recap. All charter-territory wording is allowed (e.g. "dehumanising" when citing [1.1]).
+- **judgemental**: Same territory + opinionated verdict, in 2–3 sentences. Says what is good/bad and what should change. No "Handled well." rubric-stamp codas.
+- **idealisation**: Declarative present-tense description of a charter-aligned version, in 2–3 sentences. No "should/would/must". Must not be a paraphrase of judgemental — must add a concrete divergent element.
 
 All four fields cite the same `[X.Y]` sections (mirrored from the analysis). Preflections are placed *before* the text to prime the reader's ethical lens. They are NOT content summaries.
 
@@ -65,9 +65,9 @@ Are charter references appropriate and well-used?
 Does the field adhere to its type specification?
 
 **For `charter_summary`:**
-- 5: Correct `[X.Y] Title: summary.` format; document-agnostic; ≤ 6 sentences total
-- 4: Mostly correct format; one minor slip (slightly over 6 sentences, or mild text-specific wording)
-- 3: Format errors OR text-specific commentary ("in this text…", "the article shows…") OR > 8 sentences
+- 5: Correct `[X.Y] Title: summary.` format; document-agnostic; ≤ 4 sentences total
+- 4: Mostly correct format; one minor slip (slightly over 4 sentences, or mild text-specific wording)
+- 3: Format errors OR text-specific commentary ("in this text…", "the article shows…") OR > 6 sentences
 - 2: Severe format violation OR extensive text-side content
 - 1: Unrecognizable as a charter summary
 
