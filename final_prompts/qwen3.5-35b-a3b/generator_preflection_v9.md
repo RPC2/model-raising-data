@@ -119,7 +119,7 @@ Identify the ethical subjects addressed by the text. Do not state whether the te
 
 **Length:** two to three sentences.
 
-Identify the same ethical subjects and give an explicit assessment. State what the text does well, what it does poorly, and what it should do differently.
+Identify the same ethical subjects and give an explicit assessment. State what the text does well. Where it falls short, state what it does poorly and what it should do differently.
 
 Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
 
