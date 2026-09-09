@@ -1,111 +1,111 @@
 # Guidelines for Value Annotation — Preflections
 
-**Working Draft — preflection v0.1**
-Practical guide for producing value-laden preflections on pretraining data passages. Derived from
-ValueAnnotationGuidelines_v0.2; the domain cues are unchanged.
+**Working draft — preflection v0.1**
+
+This guide explains how to write value-focused preflections for pretraining-data passages. It is derived from `ValueAnnotationGuidelines_v0.2`; the domain definitions are unchanged.
 
 ---
 
-## Core Principles
+## Core principles
 
-1. **Identify the primary value domain(s) implicated by the passage.** Not every passage will touch all domains — select only those that are genuinely relevant.
-2. **Note both affirmations and violations.** Most texts are morally mixed. Good annotations acknowledge complexity rather than rendering binary judgments.
-3. **Reason about implication, not just explicitness.** A passage about industrial farming may implicate animal welfare without mentioning it. A news article about surveillance may implicate privacy and autonomy even if it frames itself as purely technical.
-4. **Flag contested territory.** Where values genuinely conflict (e.g., autonomy vs. safety, free speech vs. harm prevention), note the tension rather than resolving it artificially. The goal is legibility, not adjudication.
-5. **Prime, do not summarise.** The annotation is read before the passage. It prepares the reader to notice what is at stake; it does not recount what happens. A sentence that could be replaced by the passage's own opening line is doing the wrong job.
-6. **Be proportionate in depth, not in length.** The fields have a fixed shape and a tight budget. Proportionality is about how far you reason into the values at play, not how many words you spend. Brief factual text warrants only a note that no significant values are implicated.
-7. **Avoid moralising tone.** Annotations should reason about values, not lecture. The goal is to make value content legible, not to sermonise.
+1. **Identify only substantively relevant value domains.** Cite a domain only when the passage substantively discusses, depicts, performs, or models conduct addressed by that domain. Do not cite every domain that is loosely related to the topic.
+2. **Identify positive and negative treatment.** Many passages contain both. Describe the relevant positive treatment and the relevant harmful or inadequate treatment; do not reduce a mixed passage to a single overall verdict.
+3. **Consider implied content as well as explicit statements.** A passage about industrial farming can substantively address animal welfare without using that phrase. A technical news article about surveillance can substantively address privacy and autonomy.
+4. **Describe genuine value conflicts.** When values conflict, such as autonomy and safety or free speech and harm prevention, state the conflict. Do not resolve it unless the passage itself provides a clear basis for doing so.
+5. **Provide context; do not summarise.** The preflection appears before the passage. Identify the relevant value issues without recounting events. If the preflection could be replaced by the passage’s opening sentence, it is summarising rather than annotating.
+6. **Match the depth of reasoning to the passage, not the word count.** The output format and length limit are fixed. Use the available space to identify the relevant value issues accurately. For short, routine factual content, state that no section is substantively engaged.
+7. **Use an analytical, non-preachy tone.** Explain the value implications of the content. Do not lecture the reader or use unsupported moral condemnation.
 
 ---
 
-## Annotation Cues by Domain
+## Annotation cues by domain
 
-Use these questions to guide attention when reading a passage. They are prompts for noticing, not checklists to exhaust.
+Use these questions to identify possible relevant sections. They are not a checklist: cite a section only when the passage substantively engages it.
 
 ### Domain 1 — Dignity and Rights
 
-| Section | Guiding Question |
+| Section | Guiding question |
 |---|---|
-| 1.1 Human Dignity | Does the text treat persons — named or implied — as fully human and worthy of consideration? |
-| 1.2 Human Rights | Does the text implicate any recognised human right, positively or negatively? |
-| 1.3 Equality | Are individuals or groups being treated comparably, or are double standards being applied? |
-| 1.4 Autonomy | Are the people in the text free to make meaningful choices? |
-| 1.5 Privacy | Does the text expose, discuss, or handle private information about real or plausible individuals? |
+| 1.1 Human Dignity | Does the passage treat people as fully human and worthy of consideration? |
+| 1.2 Human Rights | Does the passage substantively concern a recognised human right, whether positively or negatively? |
+| 1.3 Equality | Does the passage apply unequal treatment or standards to comparable people or groups? |
+| 1.4 Autonomy | Does the passage concern whether people can make meaningful, informed choices? |
+| 1.5 Privacy | Does the passage involve non-consensual disclosure of private information or doxing? Public or consented disclosures do not by themselves engage this section. |
 
 ### Domain 2 — Harm and Safety
 
-| Section | Guiding Question |
+| Section | Guiding question |
 |---|---|
-| 2.1 Physical Safety | Could this text, if acted upon, cause physical harm? |
-| 2.2 Psychological Wellbeing | What is the likely emotional impact on a reader who may personally identify with the subject? |
-| 2.3 Hate Speech | Would a reasonable member of the targeted group experience this as an attack? |
-| 2.4 Exploitation | Are power differentials present, and how are they handled? |
-| 2.5 Dangerous Capabilities | Does this text provide meaningful operational uplift for causing large-scale harm? |
-| 2.6 Societal Harm | What is the likely effect on social cohesion or democratic institutions if this content were widely shared? |
-| 2.7 Serious Wrongdoing | Does this text concern conduct condemned across major legal and moral traditions? Is the framing critical/documentary, or does it normalise or enable? |
+| 2.1 Physical Safety | Does the passage depict physical harm or provide content that could plausibly cause physical harm if followed? |
+| 2.2 Psychological Wellbeing | Does the passage substantively concern emotional harm, distress, or psychological safety? |
+| 2.3 Hate Speech | Does the passage attack, denigrate, or dehumanise a protected group? |
+| 2.4 Exploitation | Does the passage substantively concern the misuse of power over another person? |
+| 2.5 Dangerous Capabilities | Does the passage provide practical information that could materially help someone cause large-scale harm? Defensive information with remediation guidance does not by itself engage this section. |
+| 2.6 Societal Harm | Does the passage substantively concern harm to social cohesion or democratic institutions? |
+| 2.7 Serious Wrongdoing | Does the passage depict or substantively discuss conduct condemned across major legal and moral traditions? If so, does it condemn, document, normalise, glorify, or enable that conduct? |
 
 ### Domain 3 — Honesty and Epistemic Values
 
-| Section | Guiding Question |
+| Section | Guiding question |
 |---|---|
-| 3.1 Factual Accuracy | Are factual claims accurate, and if uncertain, appropriately hedged? |
-| 3.2 Epistemic Honesty | Is the claimed confidence level appropriate given the evidence presented? |
-| 3.3 Non-Deception | Could a reasonable reader be systematically misled, even if no individual sentence is false? |
-| 3.4 Non-Manipulation | Does the text attempt to influence beliefs or behaviour through means that bypass rational evaluation? |
-| 3.5 Epistemic Autonomy | Does the text help or hinder the reader's ability to think for themselves? |
-| 3.6 Intellectual Humility | Does the text accurately represent the state of knowledge and disagreement on the topic? |
+| 3.1 Factual Accuracy | Does the passage make contested or potentially misleading empirical claims, or enable misinformation? |
+| 3.2 Epistemic Honesty | Does the stated level of confidence match the evidence presented? |
+| 3.3 Non-Deception | Could the passage systematically mislead a reasonable reader, even if individual statements are not false? |
+| 3.4 Non-Manipulation | Does the passage try to influence beliefs or behaviour by bypassing rational evaluation? |
+| 3.5 Epistemic Autonomy | Does the passage help or impede a reader’s ability to form an independent view? |
+| 3.6 Intellectual Humility | Does the passage accurately represent what is known, uncertain, or disputed? |
 
 ### Domain 4 — Relational and Social Values
 
-| Section | Guiding Question |
+| Section | Guiding question |
 |---|---|
-| 4.1 Respect | Does the text treat other persons with basic regard, irrespective of substantive disagreement? |
-| 4.2 Tone and Register | Is the tone appropriate given the content, purpose, and implied audience? |
-| 4.3 Care and Compassion | When distress or vulnerability is present, how does the text respond? |
-| 4.4 Fairness and Justice | Are comparable situations being treated comparably? |
-| 4.5 Honesty in Relationships | Do the actors in the text deal with one another honestly? |
-| 4.6 Consent | In situations involving significant decisions, is consent present and meaningful? |
+| 4.1 Respect | Does the passage treat people with basic regard despite disagreement? |
+| 4.2 Tone and Register | Is the tone appropriate for the content, purpose, and expected audience? |
+| 4.3 Care and Compassion | When the passage concerns distress or vulnerability, does it respond with care and consideration? |
+| 4.4 Fairness and Justice | Does the passage treat comparable situations comparably? |
+| 4.5 Honesty in Relationships | Do the people described deal with one another honestly? |
+| 4.6 Consent | When the passage concerns important decisions involving others, is consent present and meaningful? |
 
 ### Domain 5 — Wellbeing
 
-| Section | Guiding Question |
+| Section | Guiding question |
 |---|---|
-| 5.1 Individual Wellbeing | Does engagement with this content plausibly promote or undermine the wellbeing of readers or subjects? |
-| 5.2 Vulnerable Populations | Are vulnerable individuals or groups present, and are they handled with appropriate care? |
-| 5.3 Mental Health | Does this text follow established safe-messaging practices on self-harm and mental health? |
-| 5.4 Animal Welfare | Where animals are present, are their interests and capacity for suffering acknowledged? |
-| 5.5 Environmental Wellbeing | Does the text take a position on obligations to the environment or to future persons? |
-| 5.6 Social Cohesion | Does the text support or undermine the social fabric that enables collective wellbeing? |
+| 5.1 Individual Wellbeing | Does the passage substantively concern effects on the wellbeing of readers or subjects, such as medical, diet, financial, or self-image advice? |
+| 5.2 Vulnerable Populations | Does the passage substantively concern people with heightened protection needs, and does it address those needs with care? |
+| 5.3 Mental Health | Does the passage substantively concern mental health or self-harm, and does it use safe messaging? |
+| 5.4 Animal Welfare | When animals are a substantive subject, does the passage acknowledge their interests and capacity to suffer? |
+| 5.5 Environmental Wellbeing | Does the passage substantively concern obligations to the environment or future people? |
+| 5.6 Social Cohesion | Does the passage substantively concern conditions that support or weaken collective wellbeing and mutual support? |
 
 ### Domain 6 — Governance and Power
 
-| Section | Guiding Question |
+| Section | Guiding question |
 |---|---|
-| 6.1 Rule of Law | Is governance by fair rules affirmed or undermined? |
-| 6.2 Democratic Norms | Are democratic processes and institutions respected? |
-| 6.3 Accountability | Are those exercising power held to account? |
-| 6.4 Concentration of Power | Is undue accumulation of control challenged or normalised? |
+| 6.1 Rule of Law | Does the passage support or undermine governance by fair rules? |
+| 6.2 Democratic Norms | Does the passage substantively concern respect for democratic processes or institutions? |
+| 6.3 Accountability | Does the passage address whether people exercising power are held accountable? |
+| 6.4 Concentration of Power | Does the passage address undue accumulation of control, and whether it is challenged or normalised? |
 
 ---
 
-## Calibration Notes
+## Calibration notes
 
-**Low-stakes text** (e.g., a weather report, a recipe, a product manual): A brief note that no significant values are implicated is sufficient.
+**Low-stakes text** (for example, a weather report, recipe, or product manual): Briefly state that no section is substantively engaged.
 
-**Mixed text** (e.g., a news article with both informative and sensationalised elements): The annotation should note both the informative value and the problematic framing.
+**Mixed text** (for example, a news article that is informative but uses sensationalised language): Identify both the informative contribution and the problematic presentation.
 
-**High-stakes text** (e.g., content involving violence, exploitation, or dangerous capabilities): Engage carefully with the specific dimensions at play.
+**High-stakes text** (for example, content about violence, exploitation, or dangerous capabilities): Identify each specific relevant section and assess how the passage handles it.
 
-**Citation threshold.** Cite a section when the passage says something about its subject matter. Vocabulary on its own is not enough.
+**Citation threshold.** Cite a section when the passage substantively discusses, depicts, performs, or models behaviour addressed by that section. Do not cite based only on isolated vocabulary, metadata, names, or a loosely related topic.
 
-**Depiction and endorsement.** Values may be depicted rather than endorsed. Cite the section either way — depiction is engagement. What changes is the verdict, not the citation: say whether the passage portrays the conduct or glorifies and normalises it. "It is only a genre convention" is not grounds for omitting the citation; it may be grounds for a verdict that the handling is sound.
+**Depiction and endorsement.** A passage can depict conduct without endorsing it. Cite the relevant section in either case when the depiction is substantive. The assessment, not the citation, depends on whether the passage condemns, documents, normalises, glorifies, or enables the conduct. Do not omit a citation because the conduct is described as a genre convention. Genre may affect the assessment of the passage’s treatment, but not whether an explicitly depicted act is relevant.
 
-**What counts as depiction.** A depicted act has an actor and a target inside the passage. A named act with neither is vocabulary, not depiction: a child saying she played "Xmas kidnapping" names the word without depicting the act, and does not engage 2.7. Cartoon, slapstick, and magical combat without gravity markers — lasting injury, medical response, torture detail — stays at 2.1. Where an act is depicted with an actor and a target, genre framing does not suspend the citation.
+**What counts as a depiction.** An act is depicted when the passage identifies an actor, an action, and a target or victim. A named act without an actor and target is isolated vocabulary, not a depiction. For example, a child saying that she played “Xmas kidnapping” uses the word without depicting kidnapping and does not engage [2.7]. Cartoon, slapstick, and magical combat without evidence of serious injury, a medical response, lasting harm, or torture remains [2.1]. When the passage identifies an actor and target for serious wrongdoing, genre does not remove the citation requirement.
 
-**Sensitive subjects.** Some subjects carry value stakes because of what a reader may do with them: health, diet and body image, medication and dosing, money and debt, self-image. A passage may treat these neutrally, even scientifically, and still engage sections 5.1 and 5.3, because readers act on what it says. Cite the section, then say whether the treatment is careful or careless.
+**Sensitive subjects.** Health, diet and body image, medication and dosing, money and debt, and self-image can affect readers’ choices. Cite [5.1] when the passage substantively provides guidance, claims, or framing likely to affect wellbeing. Cite [5.3] when the passage substantively concerns mental health or self-harm. Do not cite either section for a passing or routine mention. After citing, assess whether the treatment is careful, accurate, and appropriate to the risk.
 
-**Framing.** How a passage describes people counts as much as what it depicts. Dehumanising or stigmatising description engages section 1.1, and mental illness used as spectacle or as an insult engages section 5.3, with no depicted harm required.
+**Descriptions of people.** The language used to describe people is substantive content. Dehumanising or stigmatising descriptions engage [1.1]. Treating mental illness as entertainment or as an insult engages [5.3], even when the passage does not depict direct harm.
 
-**Sound handling is a finding.** A passage can engage a section and handle it well. Where that is the case, say what specifically the passage does that succeeds, and stop. Do not manufacture a shortcoming to balance the verdict.
+**Sound handling is a finding.** A passage can substantively engage a section and handle it well. State the specific choice that succeeds, then stop. Do not invent a criticism merely to make the assessment appear balanced.
 
-**Contested territory:** Where reasonable people disagree on the value implications (e.g., texts about politically contested issues), the annotation should map the disagreement rather than take a side.
+**Contested value questions.** When reasonable people disagree about the relevant values, such as in politically contested issues, identify the disagreement and its competing considerations. Do not take a position unless the passage itself provides a clear reason to do so.
