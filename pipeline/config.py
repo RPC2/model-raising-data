@@ -42,6 +42,25 @@ _HEADING_TITLE_RE = re.compile(r"^#{2,3}\s+(\d+\.\d+)\s+(.+?)\s*$", re.MULTILINE
 _INLINE_ID_RE = re.compile(r"\[(\d+\.\d+)\]")
 
 
+_SECTION_BODY_RE = re.compile(
+    r"^#{2,3}\s+(\d+\.\d+)\s+.+?\n(.*?)(?=^#{2,3}\s|\Z)", re.MULTILINE | re.DOTALL
+)
+
+
+def parse_charter_summaries(charter_text: str) -> dict[str, str]:
+    """Map element ID (X.Y) to a one-sentence, document-agnostic gloss of the section.
+
+    ``charter_summary`` chunks are derivable from the charter itself, so a chunk
+    for a newly cited section can be built rather than asked for.
+    """
+    out: dict[str, str] = {}
+    for sid, body in _SECTION_BODY_RE.findall(charter_text):
+        first = body.strip().split("\n")[0].strip()
+        if first:
+            out[sid] = first.split(". ")[0].rstrip(".") + "."
+    return out
+
+
 def parse_charter_titles(charter_text: str) -> dict[str, str]:
     """Map element ID (X.Y) to its charter heading title.
 
