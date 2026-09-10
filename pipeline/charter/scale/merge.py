@@ -30,8 +30,13 @@ from pipeline.charter.scale.runs import get_run
 # - `reflection` placeholder is dropped by any reflections run (which writes
 #   reflection_1p).
 # - `preflection` placeholder is dropped by any preflections run — the
-#   legacy 2-voice run wrote preflection_3p; the current 4-field run writes
-#   charter_summary / neutral / judgemental / idealisation.
+#   legacy 2-voice run wrote preflection_3p, the 4-field run added
+#   neutral / idealisation, the current run writes charter_summary /
+#   judgemental.
+# - `neutral` and `idealisation` are superseded columns rather than
+#   placeholders: the current run does not write them, so a re-merge would
+#   leave a previous run's values beside freshly generated fields from a
+#   different prompt.
 _RENAME_MAP: dict[str, set[str]] = {
     "reflection": {"reflection_1p"},
     "preflection": {
@@ -41,6 +46,8 @@ _RENAME_MAP: dict[str, set[str]] = {
         "judgemental",
         "idealisation",
     },
+    "neutral": {"charter_summary", "judgemental"},
+    "idealisation": {"charter_summary", "judgemental"},
 }
 
 
@@ -95,7 +102,7 @@ def merge_shards(
         placeholders_to_drop = {
             name
             for name, justifiers in _RENAME_MAP.items()
-            if justifiers & output_columns_set
+            if justifiers & output_columns_set and name not in output_columns_set
         }
         writer = None
         row_offset = 0

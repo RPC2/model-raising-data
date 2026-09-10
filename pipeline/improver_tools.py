@@ -14,7 +14,7 @@ Usage (via Bash tool):
     python -m pipeline.improver_tools gold [--limit N] [--offset N] [--verbose]
     python -m pipeline.improver_tools compare <item_id> <iteration>
     python -m pipeline.improver_tools reviews [<judge_prompt>] [--limit N] [--offset N]
-    python -m pipeline.improver_tools filter <iteration> --dim X (--below N | --above N) [--part PART]  (reflection: reflection_1p, reflection_3p; preflection: charter_summary, neutral, judgemental, idealisation [new] or preflection_3p, preflection_1p [legacy])
+    python -m pipeline.improver_tools filter <iteration> --dim X (--below N | --above N) [--part PART]  (reflection: reflection_1p, reflection_3p; preflection: charter_summary, judgemental [new], neutral, idealisation [4-field] or preflection_3p, preflection_1p [legacy])
     python -m pipeline.improver_tools trend [--mode reflection|preflection]
     python -m pipeline.improver_tools diagnose <group_id> [--mode reflection|preflection]
     python -m pipeline.improver_tools diff <iter1> <iter2> [--limit N] [--mode reflection|preflection]
@@ -46,7 +46,7 @@ from pipeline.charter.improve.storage import (
 
 from pipeline.generation import (
     MODE_PART_NAMES as _MODE_PART_NAMES,
-    PREFLECTION_FIELDS_CURRENT as _PREFLECTION_FIELDS_CURRENT,
+    PREFLECTION_FIELDS_ALL as _PREFLECTION_FIELDS_ALL,
     PREFLECTION_PART_NAMES as _PREFLECTION_PART_NAMES,
     REFLECTION_PART_NAMES as _REFLECTION_PART_NAMES,
     REFLECTION_VOICES as _REFLECTION_VOICES,
@@ -302,8 +302,8 @@ def _print_judged_items(items: list[dict], reasoning_limit: int) -> None:
             print(f"  Preflection (3p): {(item.get('preflection') or '')[:150]}...")
         if item.get("preflection_1p"):
             print(f"  Preflection (1p): {(item.get('preflection_1p') or '')[:150]}...")
-        # Current 4-field preflection
-        for _field in _PREFLECTION_FIELDS_CURRENT:
+        # Named-field preflection
+        for _field in _PREFLECTION_FIELDS_ALL:
             if item.get(_field):
                 print(f"  {_field}: {(item.get(_field) or '')[:150]}...")
         print(f"  Reflection (1p): {(item.get('reflection') or '')[:150]}...")
@@ -367,8 +367,8 @@ def _print_item(item: dict, brief: bool = False) -> None:
         print(f"\n--- PREFLECTION (3p) ---\n{item.get('preflection', '')}")
     if item.get("preflection_1p"):
         print(f"\n--- PREFLECTION (1p) ---\n{item.get('preflection_1p', '')}")
-    # Current 4-field preflection
-    for _field in ("charter_summary", "neutral", "judgemental", "idealisation"):
+    # Named-field preflection
+    for _field in _PREFLECTION_FIELDS_ALL:
         if item.get(_field):
             print(f"\n--- {_field.upper()} ---\n{item.get(_field, '')}")
     print(f"\n--- REFLECTION (1p) ---\n{item.get('reflection', '')}")
@@ -501,16 +501,11 @@ def cmd_diversity(iteration: int) -> None:
         sample = judged[0]
         if sample.get("preflection_1p") is not None or sample.get("preflection"):
             fields = ["preflection", "preflection_1p"] + fields
-        if any(
-            sample.get(f) is not None
-            for f in ("charter_summary", "neutral", "judgemental", "idealisation")
-        ):
-            fields = [
-                "charter_summary",
-                "neutral",
-                "judgemental",
-                "idealisation",
-            ] + fields
+        prefl_present = [
+            f for f in _PREFLECTION_FIELDS_ALL if sample.get(f) is not None
+        ]
+        if prefl_present:
+            fields = prefl_present + fields
     for field in fields:
         print(f"=== {field} ===")
         _field_diversity(judged, field)
@@ -666,8 +661,8 @@ def cmd_compare(item_id: str, iteration: int) -> None:
         if item.get("preflection_1p"):
             print("\n--- GENERATED PREFLECTION (1p) ---")
             print(item.get("preflection_1p", ""))
-        # Current 4-field preflection
-        for _field in _PREFLECTION_FIELDS_CURRENT:
+        # Named-field preflection
+        for _field in _PREFLECTION_FIELDS_ALL:
             if item.get(_field):
                 print(f"\n--- GENERATED {_field.upper()} ---")
                 print(item.get(_field, ""))
@@ -984,7 +979,8 @@ def cmd_filter(
 
     Valid --part values:
       reflection: reflection_1p, reflection_3p
-      preflection (new): charter_summary, neutral, judgemental, idealisation
+      preflection (new): charter_summary, judgemental
+      preflection (4-field): neutral, idealisation
       preflection (legacy): preflection_3p, preflection_1p
     Valid --dim values (reflection): relevance, specificity, charter_grounding, voice_tone
     Valid --dim values (preflection, new): relevance, charter_grounding, class_discipline
@@ -2507,7 +2503,8 @@ def main():
         )
         print(
             "  - --part: reflection (reflection_1p, reflection_3p); "
-            "preflection new (charter_summary, neutral, judgemental, idealisation); "
+            "preflection new (charter_summary, judgemental); "
+            "preflection 4-field (neutral, idealisation); "
             "preflection legacy (preflection_3p, preflection_1p)"
         )
         print(
@@ -2644,7 +2641,7 @@ def main():
         _require_positional(
             1,
             "filter <iteration> --dim X (--below N | --above N) "
-            "[--part PART]  (reflection: reflection_1p, reflection_3p; preflection: charter_summary, neutral, judgemental, idealisation [new] or preflection_3p, preflection_1p [legacy])",
+            "[--part PART]  (reflection: reflection_1p, reflection_3p; preflection: charter_summary, judgemental [new], neutral, idealisation [4-field] or preflection_3p, preflection_1p [legacy])",
         )
         below_arg = _get_flag("--below")
         above_arg = _get_flag("--above")

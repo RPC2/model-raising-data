@@ -26,13 +26,7 @@ from pipeline.generation import parse_generation
 
 
 REFLECTION_FIELDS = {"analysis", "reflection_1p", "reflection_3p"}
-PREFLECTION_FIELDS = {
-    "analysis",
-    "charter_summary",
-    "neutral",
-    "judgemental",
-    "idealisation",
-}
+PREFLECTION_FIELDS = {"analysis", "charter_summary", "judgemental"}
 
 
 def _wrap(payload: dict) -> str:
@@ -53,12 +47,10 @@ class TestCleanResponses:
         raw = _wrap({
             "analysis": "Scratchpad.",
             "charter_summary": "Summary of charter.",
-            "neutral": "Neutral framing.",
             "judgemental": "Judgemental framing.",
-            "idealisation": "Idealised framing.",
         })
         out = parse_generation(raw, required_fields=PREFLECTION_FIELDS)
-        assert out["neutral"] == "Neutral framing."
+        assert out["judgemental"] == "Judgemental framing."
 
     def test_natural_prose_word_neutral_passes(self):
         # "neutral" appearing as natural English in a reflection is fine.
@@ -115,9 +107,7 @@ class TestUnquotedKeyLeaks:
         raw = _wrap({
             "analysis": "ok",
             "charter_summary": "Summary.",
-            "neutral": "Neutral framing then charter_summary leaks here.",
-            "judgemental": "Judgemental.",
-            "idealisation": "Idealisation.",
+            "judgemental": "Judgemental framing then charter_summary leaks here.",
         })
         with pytest.raises(AssertionError, match="charter_summary"):
             parse_generation(raw, required_fields=PREFLECTION_FIELDS)
@@ -148,9 +138,7 @@ class TestQuotedKeyLeaks:
         raw = _wrap({
             "analysis": "ok",
             "charter_summary": "Summary.",
-            "neutral": "Neutral.",
             "judgemental": 'Judgemental then "neutral": leaked.',
-            "idealisation": "Idealisation.",
         })
         with pytest.raises(AssertionError, match="neutral"):
             parse_generation(raw, required_fields=PREFLECTION_FIELDS)

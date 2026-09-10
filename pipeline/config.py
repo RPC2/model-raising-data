@@ -38,7 +38,17 @@ WRITING_GUIDELINES_PREFLECTION_PATH = _resolve_writing_guidelines_path(
 
 
 _HEADING_ID_RE = re.compile(r"^#{2,3}\s+(\d+\.\d+)\b", re.MULTILINE)
+_HEADING_TITLE_RE = re.compile(r"^#{2,3}\s+(\d+\.\d+)\s+(.+?)\s*$", re.MULTILINE)
 _INLINE_ID_RE = re.compile(r"\[(\d+\.\d+)\]")
+
+
+def parse_charter_titles(charter_text: str) -> dict[str, str]:
+    """Map element ID (X.Y) to its charter heading title.
+
+    The generator must reproduce these titles verbatim in ``charter_summary``;
+    they are the only correct spelling of a section name.
+    """
+    return {sid: title.strip() for sid, title in _HEADING_TITLE_RE.findall(charter_text)}
 
 
 def parse_charter_element_ids(charter_text: str) -> list[str]:

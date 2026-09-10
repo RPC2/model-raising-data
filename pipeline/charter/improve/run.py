@@ -52,6 +52,7 @@ from pipeline.data import load_dataset_cache
 from pipeline.generation import (
     FIELD_ALIASES,
     GEN_TEXT_FIELDS,
+    PREFLECTION_FIELDS_CURRENT,
     PREFLECTION_TASK,
     REFLECTION_1P_TASK,
     REFLECTION_TASK,
@@ -93,8 +94,7 @@ def _load_canaries() -> list[dict]:
 
 
 _REFLECTION_VOICES = ("reflection_1p", "reflection_3p")
-_PREFLECTION_VOICES = ("charter_summary", "neutral", "judgemental", "idealisation")
-_ALL_VOICES = _PREFLECTION_VOICES + _REFLECTION_VOICES
+_PREFLECTION_VOICES = PREFLECTION_FIELDS_CURRENT
 
 CHAT_MESSAGE_OVERHEAD_TOKENS = 8
 CHAT_REPLY_PRIMER_TOKENS = 16
@@ -553,13 +553,7 @@ def generate_batch(
         try:
             parsed = _parse_generation(
                 raw,
-                required_fields={
-                    "analysis",
-                    "charter_summary",
-                    "neutral",
-                    "judgemental",
-                    "idealisation",
-                },
+                required_fields={"analysis", *_PREFLECTION_VOICES},
             )
         except (json.JSONDecodeError, AssertionError) as e:
             logger.warning("Item {} — preflection parse failed: {}", item["item_id"], e)
@@ -648,10 +642,7 @@ def generate_batch(
         )
         preflection_charter_elements = (
             union_charter_elements(
-                prefl_parsed.get("charter_summary"),
-                prefl_parsed.get("neutral"),
-                prefl_parsed.get("judgemental"),
-                prefl_parsed.get("idealisation"),
+                *(prefl_parsed.get(f) for f in _PREFLECTION_VOICES),
                 charter_text=charter_text,
             )
             if prefl_parsed
@@ -686,13 +677,11 @@ def generate_batch(
             "reflection": (
                 refl_parsed.get("reflection_1p", "") if refl_parsed else None
             ),
-            # Four-field preflection schema (replaces preflection_1p/preflection_3p).
-            "charter_summary": (
-                prefl_parsed.get("charter_summary") if prefl_parsed else None
-            ),
-            "neutral": prefl_parsed.get("neutral") if prefl_parsed else None,
-            "judgemental": prefl_parsed.get("judgemental") if prefl_parsed else None,
-            "idealisation": prefl_parsed.get("idealisation") if prefl_parsed else None,
+            # Two-field preflection schema (replaces preflection_1p/preflection_3p).
+            **{
+                f: (prefl_parsed.get(f) if prefl_parsed else None)
+                for f in _PREFLECTION_VOICES
+            },
             "preflection_charter_elements": preflection_charter_elements,
             "reflection_charter_elements": reflection_charter_elements,
             "raw_response": json.dumps(raw_responses) if raw_responses else None,
@@ -755,7 +744,7 @@ async def _judge_mode(
 
     # Legacy fallback for reflection items that only stored the combined
     # `reflection` column. New preflection fields have no legacy equivalent —
-    # old preflection items can't be re-judged under the new 4-field schema.
+    # old preflection items can't be re-judged under the new 2-field schema.
     _FALLBACK = {"reflection_1p": "reflection"}
     reflection_voices = _reflection_voices(include_reflection_3p)
     voices = reflection_voices if mode == "reflection" else _PREFLECTION_VOICES
@@ -777,7 +766,7 @@ async def _judge_mode(
                 f"Item {item.get('item_id')!r} is missing voice {v!r} for mode "
                 f"{mode!r}. Available keys: {sorted(k for k in item.keys() if item.get(k))}. "
                 f"Old-format preflection items cannot be judged under the new "
-                f"4-field schema."
+                f"2-field schema."
             )
 
     user_content = f"## Source Text\n\n{source_text}\n\n---\n\n"
@@ -848,7 +837,7 @@ def judge_batch(
 
     *mode* controls which pipeline(s) to judge:
       - ``"reflection"``: judges reflection_1p (+ reflection_3p when enabled). Requires *refl_prompt_path*.
-      - ``"preflection"``: judges preflection_3p + preflection_1p only. Requires *prefl_prompt_path*.
+      - ``"preflection"``: judges the preflection fields only. Requires *prefl_prompt_path*.
       - ``None``: judges both (two concurrent calls). Requires both prompt paths.
 
     Returns the list of judged item records (with judgment merged in).

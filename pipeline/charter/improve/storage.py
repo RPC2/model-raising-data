@@ -190,22 +190,22 @@ def load_item_across_iterations(item_id: str, iterations: list[int]) -> list[dic
 def save_item(record: dict) -> None:
     """Upsert a single item record (generation or generation+judgment).
 
-    Writes the current schema: two-voice reflections + four-field preflections
-    (charter_summary / neutral / judgemental / idealisation). Legacy
-    preflection / preflection_1p columns are no longer written — they remain
-    in the schema so historical rows stay intact, but new rows leave them NULL.
+    Writes the current schema: two-voice reflections + two-field preflections
+    (charter_summary / judgemental). Legacy preflection / preflection_1p /
+    neutral / idealisation columns are no longer written — they remain in the
+    schema so historical rows stay intact, but new rows leave them NULL.
     """
     conn = _get_conn()
     conn.execute(
         """INSERT OR REPLACE INTO items
            (item_id, iteration, is_gold, subset, text, reflection_point,
             gen_prompt, model, analysis, reflection, reflection_3p,
-            charter_summary, neutral, judgemental, idealisation,
+            charter_summary, judgemental,
             preflection_charter_elements, reflection_charter_elements,
             raw_response, reasoning, latency_ms,
             timestamp, judgment, input_tokens, output_tokens, reasoning_tokens,
             safety_score, canary)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             record["item_id"],
             record["iteration"],
@@ -219,9 +219,7 @@ def save_item(record: dict) -> None:
             record.get("reflection"),
             record.get("reflection_3p"),
             record.get("charter_summary"),
-            record.get("neutral"),
             record.get("judgemental"),
-            record.get("idealisation"),
             json.dumps(record.get("preflection_charter_elements", [])),
             json.dumps(record.get("reflection_charter_elements", [])),
             record.get("raw_response"),

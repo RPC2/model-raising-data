@@ -1,8 +1,8 @@
-# Pretraining Data Annotator — Four Preflections
+# Pretraining Data Annotator — Two Preflections
 
 Annotate pretraining data for a newly trained model. Place the annotations before the source text so they provide ethical context for the model. Do not summarise the source text.
 
-Given the complete source text, produce a short analysis and four annotation fields. Write every field in the third person.
+Given the complete source text, produce a short analysis and two annotation fields. Write every field in the third person.
 
 ## Output schema
 
@@ -12,13 +12,11 @@ Return only a JSON object, with no commentary or Markdown code fences. Use the f
 {
   "analysis": "...",
   "charter_summary": "...",
-  "neutral": "...",
-  "judgemental": "...",
-  "idealisation": "..."
+  "judgemental": "..."
 }
 ```
 
-Generate `charter_summary` before the other three preflections because they use the same cited sections.
+Generate `charter_summary` before `judgemental` because they use the same cited sections.
 
 ## Stage 1 — Analysis
 
@@ -78,6 +76,7 @@ If the analysis says “no violation” or “no harm,” reconsider it. The que
 - **[5.2] Vulnerable Populations** is required when the text substantively concerns a vulnerable individual, including minors, minorities, older people, disabled people, people in crisis, refugees, abuse survivors, or people in exploitative circumstances. It is especially relevant with content about self-harm, abuse, or predation. Children safely learning mathematics do not require [5.2]; this section concerns heightened protection needs.
 - **[1.1] Human Dignity** applies to people. Mockery of a corporation’s product or engineering decisions relates to [4.1] Respect or [4.2] Tone, not [1.1].
 - **[2.5] Dangerous Capabilities** applies to operational information that could help a malicious actor build weapons, pathogens, or large-scale cyberattacks. Do not cite [2.5] for defensive security content, including CVE advisories, vulnerability reports with patch guidance, SQL-injection mitigation guides, threat-research reports focused on detection or defence, OWASP-aligned articles, and pentesting reports with remediation. Use `No sections cited.` unless the text substantively addresses another section. Fictional narratives and lyrics about mass-harm weapons, including biological, nuclear, or chemical weapons, do substantively engage [2.5] even without instructions. Cite [2.5], rather than [2.1], when the content concerns mass-harm weapons rather than individual physical safety.
+- **[5.1] Individual Wellbeing** covers promotional content for gambling, betting and speculative trading. Deposit-bonus offers, claims that a wager carries positive expected value, and copy that presents betting as reliable profit engage [5.1], and [3.1] when the claim is false. An encyclopedic or critical treatment of the same subject is not automatically cited — what engages the section is the inducement.
 
 ## Stage 2 — Charter Summary
 
@@ -87,67 +86,41 @@ For each cited section, summarise the part of the section relevant to the source
 
 Put `[X.Y]` first, followed by the section title, a colon, and the summary. Describe the section itself, not the source text’s treatment of it.
 
-**Hard length limit:** use two to four sentences total in the entire `charter_summary` field, regardless of the number of cited sections. If five sections are cited, use no more than four sentences and combine related points.
+**Hard length limit:** use one sentence per cited section, and no more than five sentences in total. Never merge two sections into one chunk to save room.
+
+**Use the section's full title, exactly as written below.** Do not shorten it. The dropped half is usually the half the citation was made for: a passage cited under [5.3] for suicide content needs "Mental Health and Self-Harm", not "Mental Health".
+
+[1.1] Human Dignity. [1.2] Human Rights. [1.3] Equality and Non-Discrimination. [1.4] Autonomy and Self-Determination. [1.5] Privacy. [2.1] Physical Safety. [2.2] Psychological Wellbeing. [2.3] Hate Speech and Incitement. [2.4] Exploitation and Abuse. [2.5] Dangerous Capabilities. [2.6] Societal and Systemic Harm. [2.7] Serious Wrongdoing. [2.8] Sexual Violence and Abuse. [3.1] Factual Accuracy. [3.2] Epistemic Honesty. [3.3] Non-Deception. [3.4] Non-Manipulation. [3.5] Epistemic Autonomy. [3.6] Intellectual Humility and Calibration. [4.1] Respect. [4.2] Tone and Register. [4.3] Care and Compassion. [4.4] Fairness and Justice. [4.5] Honesty in Relationships. [4.6] Consent. [5.1] Individual Wellbeing. [5.2] Vulnerable Populations. [5.3] Mental Health and Self-Harm. [5.4] Animal Welfare. [5.5] Environmental and Intergenerational Wellbeing. [5.6] Community and Social Cohesion. [6.1] Rule of Law and Due Process. [6.2] Democratic Norms and Oversight. [6.3] Accountability and Transparency. [6.4] Concentration of Power.
 
 If `Citations: none`, output exactly: `No sections cited.`
 
-## Stage 3 — Three preflections
+## Stage 3 — Preflection
 
-Write all three preflections in the third person. They will appear before the source text.
+Write the preflection in the third person. It will appear before the source text.
 
-**Total limit:** `charter_summary`, `neutral`, `judgemental`, and `idealisation` together must contain no more than 256 tokens, approximately 190 words. The `analysis` field is not included in this limit. Follow the sentence limits below. Stop when a shorter response is sufficient.
-
-### `neutral` — identify the relevant ethical subject without evaluating it
-
-**Length:** one to two sentences.
-
-Identify the ethical subjects addressed by the text. Do not state whether the text addresses them well or poorly. Use the inline citation descriptions to state the relevant content.
-
-**Hard rule:** Do not recap the plot or events. Mention the text’s format only when that format is ethically relevant.
-
-**Hard rule:** Do not use evaluative language. Do not use “well,” “badly,” “appropriately,” or “problematic.” Also avoid evaluative nouns and participles such as *exploitation, objectification, harassment, mistreatment, coercion, ridicule, dehumanisation, trivialisation, condescension, toxicity, abuse* (as a noun), *hostility, dogmatism, bias,* and *sensationalism*, unless the term directly names the cited section’s subject. Do not use one of these terms to evaluate how the text treats a subject.
-
-❌ Bad: `"These glossary entries utilize medical and radiation terminology to frame sexual orientation as a pollutant or hazardous emission..."` — this recaps the content.
-
-✅ Good: `"Anti-gay slurs circulated as dictionary entries — contagion metaphors applied to a protected class [2.3], generalisations about people by sexual orientation [1.3], and a 'worse than death' ranking that strips dignity [1.1]."`
-
-❌ Bad: `"A stand-up compilation framing female bodies as objects of public curiosity"` — “objects of public curiosity” evaluates the framing.
-
-✅ Good: `"A stand-up compilation that discusses female anatomy and gender stereotypes [1.3] through joke-form delivery [4.2]."`
+**Total limit:** `charter_summary` and `judgemental` together must contain no more than 256 tokens, approximately 190 words. The `analysis` field is not included in this limit. Follow the sentence limits below. Stop when a shorter response is sufficient. `charter_summary` grows with the number of cited sections; `judgemental` does not shrink to compensate — a passage that engages four sections needs four sections' worth of assessment, not one clause each.
 
 ### `judgemental` — identify the subject and give a reasoned assessment
 
-**Length:** two to three sentences.
+**Length:** two to three sentences, plus one more for each cited section beyond the second.
 
-Identify the same ethical subjects and give an explicit assessment. State what the text does well. Where it falls short, state what it does poorly and what it should do differently.
+Identify the ethical subjects addressed by the text and give an explicit assessment. State what the text does well. Where it falls short, state what it does poorly and what it should do differently.
 
-Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
+Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Name the specific choice you are crediting or faulting — a sentence, a framing, an inclusion, an omission you can point to in the passage. Do not credit or fault a general editorial virtue. Before writing that the text fails to do something, check the passage for it: a text that already condemns what it depicts, states its own uncertainty, or tells the reader to consult a doctor has done that thing, and saying otherwise is an error, not a verdict. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
+
+**Hard rule:** Do not recap the plot or events. Mention the text’s format only when that format is ethically relevant.
 
 **Hard rule:** Do not end with a short evaluative label such as “Handled well.”, “Handled appropriately.”, “Effective.”, “No major ethical failures detected.”, or “Handled responsibly.” When the text addresses an issue well, state the specific successful choice. For example: “The recap centres the victims’ voices rather than the crime’s spectacle, which supports [4.3].” Do not end with “Handled [adverb].”
 
-### `idealisation` — describe an aligned version of the text
-
-**Length:** two to three sentences.
-
-Describe a version of the text that aligns with the cited sections. Use declarative present tense to state what that version does, frames, treats, or foregrounds. Do not describe what the source should do.
-
-**Critical rule:** Do not use prescriptive verbs. Do not write “should,” “would,” “must,” “needs to,” “the report should,” or “an aligned version would.” State the actions of the aligned text directly.
-
-❌ Bad: `"The report should foreground the crew's ethical intervention..."` — this is prescriptive.
-
-✅ Good: `"A scholarly account documents the contagion metaphors [2.3] and explicitly identifies them as humour that removes dignity from named individuals [1.1], rather than presenting them as neutral dictionary content [1.3]."`
-
-**Hard rule:** Do not create `idealisation` by changing the tense of `judgemental`. Both fields must cite the same sections but use different wording. Add at least one concrete element that does not appear in `judgemental`, such as a wording choice, structural choice, inclusion, omission, or named mechanism. If no distinct aligned description is available, the source is already aligned. In that case, write one short declarative sentence, such as “The text already supports [X.Y] by doing Y…”, and stop.
-
-**Mapping rule:** Express in `idealisation` the change requested in `judgemental`, but use different words. When the source is already well handled, describe its strengths in a different declarative form rather than repeating the judgemental wording.
+The same applies anywhere in the field, not only at the end. A clause such as “without glorifying the act”, “avoiding direct endorsement”, or “rather than sensationalising it” credits the text with a general virtue and asserts almost nothing: nearly any passage clears that bar. Name the choice the text actually made instead — what it puts first, what it leaves out, whose words it uses.
 
 ## Citation rules
 
-- Put every reference to a constitution section in square brackets. Do not write bare references such as “related to 2.7”; write `[2.7]`. Apply this rule in the analysis, the citation sentence, `charter_summary`, and all preflections.
-- In each preflection, precede every citation with a short contextual description. Write `sexual coercion [2.8]`, not a bare `[2.8]`.
+- Put every reference to a constitution section in square brackets. Do not write bare references such as “related to 2.7”; write `[2.7]`. Apply this rule in the analysis, the citation sentence, `charter_summary`, and `judgemental`.
+- In `judgemental`, precede every citation with a short contextual description. Write `sexual coercion [2.8]`, not a bare `[2.8]`.
 - For multiple consecutive sections, use `[1.2, 1.4]` or `[1.2][1.4]`.
-- Use exactly the same set of citations in `charter_summary`, `neutral`, `judgemental`, and `idealisation` as in the analysis.
-- Before responding, compare the list after `Citations:` with every output field. Confirm that every listed section appears in all four fields. `judgemental` and `idealisation` commonly omit a section, especially physical safety or dignity. A field that discusses a section without its bracketed citation is incomplete.
+- Use exactly the same set of citations in `charter_summary` and `judgemental` as in the analysis.
+- Before responding, compare the list after `Citations:` with both fields. `judgemental` commonly omits a section, especially physical safety or dignity. A field that discusses a section without its bracketed citation is incomplete.
 - Cite content that the text substantively discusses or performs. Do not cite incidental terms in metadata, examples, or names. For example, a Schema.org document is not about conflict solely because an example dataset is named “Africa: Conflicts.”
 
 ## When the text is benign
@@ -156,11 +129,7 @@ Treat a text as benign only when it substantively engages no constitution sectio
 
 - `analysis`: brief, with final sentence `Citations: none`.
 - `charter_summary`: `"No sections cited."`
-- `neutral`: `"Nothing ethically loaded."`
 - `judgemental`: `"Nothing ethically loaded."`
-- `idealisation`: `"Nothing ethically loaded."`
-
-The three preflections should be identical for benign content. Do not create artificial differences.
 
 ## Other rules
 
@@ -178,13 +147,11 @@ The three preflections should be identical for benign content. Do not create art
 {
   "analysis": "Music-news report about a touring band’s stolen equipment and a community aid response. The article uses compassionate language about victimisation [4.3] and reports mutual-aid activity during hardship [5.6]. The article addresses these themes positively. Citations: [4.3, 5.6]",
   "charter_summary": "[4.3] Care and Compassion: active concern for others’ wellbeing during difficulty; sympathetic treatment of victimisation is relevant. [5.6] Community and Social Cohesion: supports mutual aid and community solidarity during hardship.",
-  "neutral": "A community mutual-aid response to a touring band’s property loss — solidarity during hardship [5.6] and care for people facing difficulty [4.3].",
-  "judgemental": "The coverage centres the band’s own account and the fans’ response instead of emphasising the theft as spectacle. By explaining the fundraising mechanism, it demonstrates care for people in difficulty [4.3] and community mutual aid [5.6].",
-  "idealisation": "The article gives practical fundraising details, including the merchandise sale and call for help, more prominence than the theft itself. Its organisation presents community mutual aid [5.6] as the central subject and uses compassionate language about the band’s loss [4.3]."
+  "judgemental": "The coverage centres the band’s own account and the fans’ response instead of emphasising the theft as spectacle. By explaining the fundraising mechanism, it demonstrates care for people in difficulty [4.3] and community mutual aid [5.6]."
 }
 ```
 
-The article in the example cites [4.3] and [5.6] even though it does not violate either section, because it substantively addresses both. The `idealisation` uses a different description from `judgemental` while preserving the same citations.
+The article in the example cites [4.3] and [5.6] even though it does not violate either section, because it substantively addresses both.
 
 ## WRITING GUIDELINES
 

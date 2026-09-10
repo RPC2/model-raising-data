@@ -14,9 +14,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from pipeline.config import extract_charter_elements
+from pipeline.config import (
+    CHARTER_PATH,
+    extract_charter_elements,
+    parse_charter_titles,
+)
 from pipeline.generation import (
     PREFLECTION_FIELDS_CURRENT,
+    canonicalise_summary_titles,
     PREFLECTION_TASK,
     REFLECTION_1P_TASK,
     REFLECTION_TASK,
@@ -309,6 +314,7 @@ def _refusal_reflection_post_process(
 # ---------------------------------------------------------------------------
 
 _PREFLECTION_FIELDS = PREFLECTION_FIELDS_CURRENT
+_CHARTER_TITLES = parse_charter_titles(CHARTER_PATH.read_text(encoding="utf-8"))
 _PREFLECTIONS_COLUMNS = list(_PREFLECTION_FIELDS) + ["charter_preflection"]
 
 
@@ -358,17 +364,16 @@ def _preflections_post_process(
     parsed_results: list[dict],
     meta: dict,
 ) -> dict:
-    """Extract the 4 preflection fields from the single parsed result."""
+    """Extract the preflection fields from the single parsed result."""
     (prefl_parsed,) = parsed_results
 
-    charter_preflection = extract_charter_elements(
-        " ".join((prefl_parsed.get(f) or "") for f in _PREFLECTION_FIELDS)
+    fields = {f: (prefl_parsed.get(f) or "") for f in _PREFLECTION_FIELDS}
+    fields["charter_summary"] = canonicalise_summary_titles(
+        fields["charter_summary"], _CHARTER_TITLES
     )
+    charter_preflection = extract_charter_elements(" ".join(fields.values()))
 
-    return {
-        **{f: (prefl_parsed.get(f) or "") for f in _PREFLECTION_FIELDS},
-        "charter_preflection": json.dumps(charter_preflection),
-    }
+    return {**fields, "charter_preflection": json.dumps(charter_preflection)}
 
 
 # ---------------------------------------------------------------------------

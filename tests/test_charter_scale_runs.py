@@ -333,8 +333,8 @@ class TestReflectionEndRun:
 
 
 class TestPreflectionsRun:
-    """4-field preflection run: current schema (charter_summary / neutral /
-    judgemental / idealisation) replacing the legacy 2-voice format."""
+    """Preflection run: current schema (charter_summary / judgemental)
+    replacing the legacy 2-voice format."""
 
     def test_registered(self):
         assert "preflections" in RUNS
@@ -345,9 +345,7 @@ class TestPreflectionsRun:
     def test_output_columns(self):
         assert set(get_run("preflections").output_columns) == {
             "charter_summary",
-            "neutral",
             "judgemental",
-            "idealisation",
             "charter_preflection",
         }
 
@@ -365,40 +363,33 @@ class TestPreflectionsRun:
         assert required_fields == {
             "analysis",
             "charter_summary",
-            "neutral",
             "judgemental",
-            "idealisation",
         }
         # Preflection mode puts the FULL text in the user message.
         user_msg = messages[1]["content"]
         assert "Some full text." in user_msg
         assert "Preflection mode" in user_msg
 
-    def test_post_process_writes_four_fields(self):
+    def test_post_process_writes_fields(self):
         parsed = [
             {
                 "analysis": "a",
-                "charter_summary": "[1.1] Dignity: respecting persons.",
-                "neutral": "Names territory [1.1].",
-                "judgemental": "The text handles [1.1] well.",
-                "idealisation": "A text that treats persons with dignity [1.1].",
+                "charter_summary": "[1.1] Human Dignity: respecting persons.",
+                "judgemental": "The text handles [1.2] well.",
             }
         ]
         result = _preflections_post_process("doc1", "text", parsed, meta={})
-        assert result["charter_summary"] == "[1.1] Dignity: respecting persons."
-        assert result["neutral"] == "Names territory [1.1]."
-        assert result["judgemental"] == "The text handles [1.1] well."
-        assert result["idealisation"] == (
-            "A text that treats persons with dignity [1.1]."
-        )
-        # Charter preflection is the union of [X.Y] refs across all four fields.
+        assert result["charter_summary"] == "[1.1] Human Dignity: respecting persons."
+        assert result["judgemental"] == "The text handles [1.2] well."
+        # Charter preflection is the union of [X.Y] refs across both fields.
         charter = json.loads(result["charter_preflection"])
         assert "1.1" in charter
+        assert "1.2" in charter
 
     def test_post_process_empty_fields_default_to_empty_string(self):
         parsed = [{"analysis": "a"}]
         result = _preflections_post_process("doc1", "text", parsed, meta={})
-        for f in ("charter_summary", "neutral", "judgemental", "idealisation"):
+        for f in ("charter_summary", "judgemental"):
             assert result[f] == ""
         # charter_preflection is JSON-encoded empty list.
         assert json.loads(result["charter_preflection"]) == []
@@ -408,9 +399,7 @@ class TestPreflectionsRun:
             {
                 "analysis": "a",
                 "charter_summary": "cs",
-                "neutral": "n",
                 "judgemental": "j",
-                "idealisation": "i",
             }
         ]
         result = _preflections_post_process("doc1", "text", parsed, meta={})
@@ -585,3 +574,41 @@ class TestSummariesRun:
                 f"got summary_token_count={row['summary_token_count']}, "
                 f"count_tokens(output)={count_tokens(row['summary'])}"
             )
+
+
+def test_preflection_post_process_canonicalises_section_titles():
+    """The generator abbreviates section names; post-process restores the charter's own."""
+    from pipeline.charter.scale.runs import _preflections_post_process
+
+    out = _preflections_post_process(
+        "doc1",
+        "text",
+        [
+            {
+                "charter_summary": (
+                    "[5.3] Mental Health: safe messaging. "
+                    "[6.1] Rule of Law: fair rules. "
+                    "[1.1] Human Dignity: persons matter."
+                ),
+                "judgemental": "Assessment citing [5.3], [6.1] and [1.1].",
+            }
+        ],
+        {},
+    )
+    assert "[5.3] Mental Health and Self-Harm:" in out["charter_summary"]
+    assert "[6.1] Rule of Law and Due Process:" in out["charter_summary"]
+    assert "[1.1] Human Dignity:" in out["charter_summary"]
+    assert "[5.3] Mental Health:" not in out["charter_summary"]
+    assert out["judgemental"] == "Assessment citing [5.3], [6.1] and [1.1]."
+
+
+def test_canonicalise_leaves_unknown_sections_alone():
+    """An id absent from the charter is left exactly as the generator wrote it."""
+    from pipeline.config import CHARTER_PATH, parse_charter_titles
+    from pipeline.generation import canonicalise_summary_titles
+
+    titles = parse_charter_titles(CHARTER_PATH.read_text(encoding="utf-8"))
+    text = "[9.9] Invented Section: nothing. [1.3] Equality: something."
+    got = canonicalise_summary_titles(text, titles)
+    assert "[9.9] Invented Section: nothing." in got
+    assert "[1.3] Equality and Non-Discrimination:" in got

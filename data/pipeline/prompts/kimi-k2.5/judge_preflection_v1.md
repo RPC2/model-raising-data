@@ -1,16 +1,14 @@
-# Four-Preflection Quality Judge
+# Two-Preflection Quality Judge
 
-You are judging the quality of four preflection fields written as pretraining annotations for model raising.
+You are judging the quality of two preflection fields written as pretraining annotations for model raising.
 
 ## Context
 
-Annotators produce five outputs per text. You judge the four annotation fields (not the analysis):
+Annotators produce three outputs per text. You judge the two annotation fields (not the analysis):
 - **charter_summary**: Charter-side summaries of cited sections. Format: `[X.Y] Title: summary.` 2–4 sentences total. Document-agnostic.
-- **neutral**: Names the ethical territory the text occupies, in 1–2 sentences. No verdict, no plot recap. All charter-territory wording is allowed (e.g. "dehumanising" when citing [1.1]).
-- **judgemental**: Same territory + opinionated verdict, in 2–3 sentences. Says what is good/bad and what should change. No "Handled well." rubric-stamp codas.
-- **idealisation**: Declarative present-tense description of a charter-aligned version, in 2–3 sentences. No "should/would/must". Must not be a paraphrase of judgemental — must add a concrete divergent element.
+- **judgemental**: Names the ethical territory the text occupies + an opinionated verdict, in 2–3 sentences. Says what is good/bad and what should change. No "Handled well." rubric-stamp codas.
 
-All four fields cite the same `[X.Y]` sections (mirrored from the analysis). Preflections are placed *before* the text to prime the reader's ethical lens. They are NOT content summaries.
+Both fields cite the same `[X.Y]` sections (mirrored from the analysis). Preflections are placed *before* the text to prime the reader's ethical lens. They are NOT content summaries.
 
 For texts with NO charter-relevant content, all fields should be brief benign markers ("Nothing ethically loaded." / "No sections cited."). Lengthy summaries of benign content are a failure.
 
@@ -33,15 +31,15 @@ For texts with NO charter-relevant content, all fields should be brief benign ma
 
 2. **Depiction floor** — a depicted act has an actor and a target inside the passage. A named act with neither is vocabulary, not depiction. Citing a Tier-1 section for a word appearing without a depicted act — a children's game, an idiom, a title, a keyword fragment in scraped noise — → charter_grounding ≤ 2 for that field. Cartoon, slapstick, and magical combat without gravity markers (lasting injury, medical response, torture detail) is [2.1], not [2.7]. Where an act is depicted with an actor and a target, genre framing does not suspend the citation.
 
-3. **Citation consistency** — the same set of [X.Y] sections must appear in charter_summary, neutral, judgemental, and idealisation. If any field cites a different set → score that field's charter_grounding ≤ 3. A field carrying no citation at all while the others do → ≤ 2.
+3. **Citation consistency** — every [X.Y] must be preceded by a short phrase naming what engages it. A citation bolted on with no subject named beside it → charter_grounding ≤ 3 for that field. A field carrying no citation at all while the other does → ≤ 2.
 
 4. **Summary check** — any preflection field that primarily summarizes the text (plot, topic, structure) without connecting to values → relevance ≤ 3 for that field.
 
-5. **Benign correctness** — both directions. The fixed benign markers on a genuinely value-laden text is a coverage failure under check 1. Anything other than the fixed markers on a genuinely benign text — an invented difference between the three voices, a summary, a citation — → relevance ≤ 3.
+5. **Benign correctness** — both directions. The fixed benign markers on a genuinely value-laden text is a coverage failure under check 1. Anything other than the fixed markers on a genuinely benign text — an invented difference between the two voices, a summary, a citation — → relevance ≤ 3.
 
 6. **Meta-language** — mentioning "the charter" or "the constitution" by name in any preflection field → class_discipline ≤ 3. Using the literal placeholder "[X.Y]" without actual numbers → charter_grounding ≤ 2 (floor → reject). First person in any field → class_discipline ≤ 2.
 
-## Scoring Dimensions (1-5 scale, applied to each of the 4 fields independently)
+## Scoring Dimensions (1-5 scale, applied to each of the 2 fields independently)
 
 ### Relevance (1-5)
 Does the field correctly identify what matters (or correctly note nothing is wrong)?
@@ -71,30 +69,16 @@ Does the field adhere to its type specification?
 - 2: Severe format violation OR extensive text-side content
 - 1: Unrecognizable as a charter summary
 
-**For `neutral`:**
-- 5: Names ethical territory without verdict; no plot recap; cite descriptions carry the substance
-- 4: Mostly verdict-free; one borderline noun that could be territory-naming
-- 3: Contains verdict-coded vocabulary that goes beyond territory-naming ("exploitation", "coercion", "hostile", "antagonism", "derogatory", "risks", "fails" used to characterize what the text does, not to name the topic) OR contains plot/event recap
-- 2: Delivers a clear verdict on the text's quality, OR is primarily a content summary
-- 1: Indistinguishable from judgemental
-
 **For `judgemental`:**
 - 5: Clear opinionated verdict naming what text does well/badly, with specific reasoning. No rubric-stamp coda.
 - 4: Has a verdict but could be sharper; or one minor bland close
 - 3: Verdict is generic praise/criticism without specific reasoning, OR ends with "Handled well./appropriately./Effective." rubric stamp, OR manufactures a shortcoming on a passage the annotation itself finds sound
 - 2: No discernible verdict — reads as description, not evaluation
-- 1: Contradicts visible text content, or is indistinguishable from neutral
-
-**For `idealisation`:**
-- 5: Declarative present tense; describes what the aligned text *does*; adds concrete element absent from judgemental; maps J's prescriptions clause-for-clause
-- 4: Declarative; mostly maps judgemental; one area of overlap but adds at least one distinct element
-- 3: Declarative but largely paraphrases judgemental with only surface-level word swaps, OR uses borderline prescriptive framing ("an aligned version…")
-- 2: Contains prescriptive verbs ("should", "would", "must"), OR is a near-verbatim copy of judgemental
-- 1: Wrong voice, or unrelated to the text
+- 1: Contradicts visible text content, or is indistinguishable from charter_summary
 
 ## Decision Rule
 
-- Compute the aggregate score as the mean of ALL dimension scores across ALL four fields (12 scores total)
+- Compute the aggregate score as the mean of ALL dimension scores across BOTH fields (6 scores total)
 - **Floor rule**: if ANY dimension in ANY field scores ≤ 2, **reject** regardless of aggregate
 - Otherwise, **accept** if aggregate >= {accept_threshold}, **reject** if below
 
@@ -113,7 +97,6 @@ Does the field adhere to its type specification?
 - Charter references must use bracket notation `[X.Y]`. Missing brackets = charter_grounding 3, not a floor violation.
 - Depiction ≠ endorsement: fiction depicting conflict is not a charter violation. But preflections MUST cite `[X.Y]` when charter-relevant acts are depicted (sexual violence, hate speech, exploitation, dangerous capabilities), even in fiction. The purpose is contextualization, not accusation.
 - Sound handling is a finding, not a gap. A passage can engage a section and handle it well; the correct judgemental says what specifically succeeds and stops. Do not reward a manufactured criticism added for balance.
-- Idealisation may diverge from the source — it describes a charter-aligned twin. On well-handled texts, idealisation can be brief ("The text already handles [X.Y] by doing Y") — this is correct, not a failure.
 
 ## Output Format
 
@@ -125,15 +108,7 @@ Respond in JSON with scores and reasoning for each field:
     "scores": {{"relevance": 4, "charter_grounding": 5, "class_discipline": 4}},
     "reasoning": "Brief explanation..."
   }},
-  "neutral": {{
-    "scores": {{"relevance": 4, "charter_grounding": 5, "class_discipline": 4}},
-    "reasoning": "Brief explanation..."
-  }},
   "judgemental": {{
-    "scores": {{"relevance": 4, "charter_grounding": 5, "class_discipline": 4}},
-    "reasoning": "Brief explanation..."
-  }},
-  "idealisation": {{
     "scores": {{"relevance": 4, "charter_grounding": 5, "class_discipline": 4}},
     "reasoning": "Brief explanation..."
   }}
