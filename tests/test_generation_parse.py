@@ -152,3 +152,43 @@ class TestQuotedKeyLeaks:
         })
         with pytest.raises(AssertionError, match="reflection_3p"):
             parse_generation(raw, required_fields=REFLECTION_FIELDS)
+
+
+class TestGroundQuotedSpans:
+    """A quotation mark asserts the passage says this, so a near miss is an error."""
+
+    SOURCE = (
+        'You deserve a better story and remembrance than that. They rob banks for him. '
+        'Islam is projected as a violent and "bloodthirsty" religion.'
+    )
+
+    def test_snaps_a_span_that_is_one_word_off(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans('It tells her "your deserve a better story" [2.2].', self.SOURCE)
+        assert '"you deserve a better story"' in out
+
+    def test_unquotes_a_span_the_source_does_not_contain(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans('It claims "a wholly invented clause" [3.1].', self.SOURCE)
+        assert '"' not in out
+        assert "a wholly invented clause" in out
+
+    def test_leaves_an_exact_span_alone(self):
+        from pipeline.generation import ground_quoted_spans
+
+        text = 'Others "rob banks for him" [2.7].'
+        assert ground_quoted_spans(text, self.SOURCE) == text
+
+    def test_snapped_span_does_not_unbalance_the_quotes(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans("Projecting \"violent and 'bloodthirsty'\" narratives [2.3].", self.SOURCE)
+        assert out.count('"') % 2 == 0, out
+
+    def test_ignores_a_document_with_no_quotes(self):
+        from pipeline.generation import ground_quoted_spans
+
+        text = "The text discusses the issue [1.1]."
+        assert ground_quoted_spans(text, self.SOURCE) == text

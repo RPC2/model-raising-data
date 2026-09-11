@@ -8,6 +8,7 @@ without importing the charter.improve runner.
 from __future__ import annotations
 
 import re
+from difflib import SequenceMatcher
 
 from pipeline.api import extract_json
 
@@ -179,6 +180,53 @@ def rebuild_summary_chunks(
     return " ".join(
         f"[{sid}] {titles[sid]}: {glosses[sid]}" for sid in seen if sid in titles and sid in glosses
     )
+
+
+_QUOTED_SPAN_RE = re.compile(r"[\"\u201c]([^\"\u201c\u201d\n]{2,120})[\"\u201d]")
+_SPAN_TRIM = "\\ ,.;:!?-'\""
+
+
+def _flatten(text: str) -> str:
+    """Lowercase with quote characters and whitespace flattened, for span matching."""
+    flat = text.lower().replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')
+    return re.sub(r"\s+", " ", flat).strip()
+
+
+def ground_quoted_spans(text: str, source: str, threshold: float = 0.8) -> str:
+    """Correct or unquote every quoted span in *text* that *source* does not contain.
+
+    Requiring a verbatim span made the generator quote on 21% of sentences, and
+    five of seventy spans came back a word off — "your deserve" for "you deserve",
+    "robb banks" for "rob banks". None were invented, but a quotation mark asserts
+    the passage says this, so a near miss is a factual error rather than a typo.
+    A span close enough to one span of the source is snapped to it; anything else
+    keeps its words and loses its quotation marks.
+    """
+    flat = _flatten(source)
+    words = flat.split()
+
+    def _fix(m: re.Match) -> str:
+        raw = m.group(1)
+        probe = _flatten(raw).strip(_SPAN_TRIM)
+        if not probe or probe in flat:
+            return m.group(0)
+        n = len(probe.split())
+        best, score = None, threshold
+        for i, w in enumerate(words):
+            if not w.startswith(probe[:2]):
+                continue
+            cand = " ".join(words[i : i + n])
+            ratio = SequenceMatcher(None, probe, cand).ratio()
+            if ratio > score:
+                best, score = cand, ratio
+        if best is None:
+            return raw
+        # A snapped span carrying its own double quotes would unbalance this pair,
+        # and trailing punctuation must go after that swap, not before it, or the
+        # inner closing mark is stripped and the nesting breaks.
+        return '"{}"'.format(best.replace('"', "'").strip("\\ ,.;:!?-"))
+
+    return _QUOTED_SPAN_RE.sub(_fix, text)
 
 
 def detect_mode_voices(payload: dict, mode: str) -> tuple[str, ...]:

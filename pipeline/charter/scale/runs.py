@@ -22,6 +22,7 @@ from pipeline.config import (
 )
 from pipeline.generation import (
     PREFLECTION_FIELDS_CURRENT,
+    ground_quoted_spans,
     rebuild_summary_chunks,
     PREFLECTION_TASK,
     REFLECTION_1P_TASK,
@@ -373,6 +374,7 @@ def _preflections_post_process(
     fields["charter_summary"] = rebuild_summary_chunks(
         fields["charter_summary"], _CHARTER_TITLES, _CHARTER_SUMMARIES
     )
+    fields["judgemental"] = ground_quoted_spans(fields["judgemental"], doc_text)
     charter_preflection = extract_charter_elements(" ".join(fields.values()))
 
     return {**fields, "charter_preflection": json.dumps(charter_preflection)}
