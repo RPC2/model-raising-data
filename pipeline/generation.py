@@ -98,7 +98,8 @@ MODE_PART_NAMES = {
 
 _VIRTUE_VERB = (
     r"glorif|endors|sensationalis|sensationaliz|normalis|normaliz|promot|celebrat|exploit|"
-    r"justif|encourag|trivialis|trivializ|condon|present|sanitis|sanitiz|instruct"
+    r"justif|encourag|trivialis|trivializ|condon|present|sanitis|sanitiz|instruct|"
+    r"minimis|minimiz|facilitat"
 )
 _EMPTY_CREDIT_RES = (
     # virtue by negation: "without glorifying the act", "rather than sensationalising it"
