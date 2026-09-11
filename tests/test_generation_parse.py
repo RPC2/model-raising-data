@@ -192,3 +192,33 @@ class TestGroundQuotedSpans:
 
         text = "The text discusses the issue [1.1]."
         assert ground_quoted_spans(text, self.SOURCE) == text
+
+
+class TestJudgementalCitationGuard:
+    """`judgemental` omitting every bracket makes a loaded row look benign."""
+
+    REQUIRED = {"analysis", "charter_summary", "judgemental"}
+
+    def _raw(self, summary: str, judgemental: str) -> str:
+        return json.dumps(
+            {"analysis": "a", "charter_summary": summary, "judgemental": judgemental}
+        )
+
+    def test_raises_when_judgemental_drops_all_citations(self):
+        raw = self._raw("[2.1] Physical Safety: x.", "The text depicts a fatal assault.")
+        with pytest.raises(AssertionError, match="no \\[X.Y\\] citation"):
+            parse_generation(raw, self.REQUIRED)
+
+    def test_accepts_a_benign_row_with_no_citations_anywhere(self):
+        raw = self._raw("No sections cited.", "Nothing ethically loaded.")
+        assert parse_generation(raw, self.REQUIRED)["judgemental"] == "Nothing ethically loaded."
+
+    def test_accepts_matching_citations(self):
+        raw = self._raw("[2.1] Physical Safety: x.", "It reports the assault [2.1].")
+        assert parse_generation(raw, self.REQUIRED)["charter_summary"].startswith("[2.1]")
+
+    def test_does_not_fire_on_a_reflection_request(self):
+        raw = json.dumps(
+            {"analysis": "a", "reflection_1p": "x [2.1]", "reflection_3p": "y"}
+        )
+        parse_generation(raw, {"analysis", "reflection_1p", "reflection_3p"})

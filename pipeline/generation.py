@@ -308,6 +308,30 @@ def _assert_no_key_leakage(parsed: dict, required_fields: set[str]) -> None:
         )
 
 
+_SECTION_REF_RE = re.compile(r"\[(\d+\.\d+)")
+
+
+def _assert_judgemental_carries_its_citations(
+    parsed: dict, required_fields: set[str]
+) -> None:
+    """Raise when `judgemental` drops every bracket a cited `charter_summary` kept.
+
+    The prompt asks for the same citation set in both fields, and the failure is
+    one-sided: `judgemental` writes the assessment and omits the markers, so the
+    row reads as benign to anything that counts citations there. Raising here puts
+    the document back through the generator's retry path, which is the only place
+    the mapping from sentence to section still exists.
+    """
+    if not set(PREFLECTION_FIELDS_CURRENT) <= required_fields:
+        return
+    summary = _SECTION_REF_RE.findall(str(parsed.get("charter_summary", "")))
+    if summary and not _SECTION_REF_RE.search(str(parsed.get("judgemental", ""))):
+        raise AssertionError(
+            f"judgemental carries no [X.Y] citation while charter_summary cites "
+            f"{sorted(set(summary))}"
+        )
+
+
 def parse_generation(
     raw: str,
     required_fields: set[str] | None = None,
@@ -356,4 +380,5 @@ def parse_generation(
         if field in parsed and isinstance(parsed[field], list):
             parsed[field] = "\n".join(str(x) for x in parsed[field])
     _assert_no_key_leakage(parsed, required_fields)
+    _assert_judgemental_carries_its_citations(parsed, required_fields)
     return parsed
