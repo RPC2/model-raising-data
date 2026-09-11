@@ -199,6 +199,27 @@ def _flatten(text: str) -> str:
     return re.sub(r"\s+", " ", flat).strip()
 
 
+_CONTEXT_BLOCK_RE = re.compile(r"context:\s*(.*?)(?:\n\s*citations:|\Z)", re.IGNORECASE | re.DOTALL)
+_LINE_MARKER_TRIM = "> -*\u2022\t \"'\u201c\u201d\u2018\u2019"
+
+
+def context_sentences(analysis: str) -> list[str]:
+    """The source sentences the generator says each span came from.
+
+    They arrive as bare lines under `Context:`, sometimes carrying a quote
+    marker or a bullet, so the markers come off before matching.
+    """
+    block = _CONTEXT_BLOCK_RE.search(analysis)
+    if not block:
+        return []
+    out = []
+    for line in block.group(1).replace("\\n", "\n").split("\n"):
+        cleaned = line.strip().strip(_LINE_MARKER_TRIM).strip()
+        if len(cleaned) > 15:
+            out.append(cleaned)
+    return out
+
+
 def find_uncontexted_spans(analysis: str, judgemental: str, source: str) -> list[str]:
     """Spans quoted in `judgemental` with no verbatim containing sentence in `analysis`.
 
@@ -210,13 +231,14 @@ def find_uncontexted_spans(analysis: str, judgemental: str, source: str) -> list
     sentence is real and actually holds the span.
     """
     flat_source = _flatten(source)
-    context = [_flatten(c) for c in _quoted_spans(analysis)]
+    context = [_flatten(c) for c in context_sentences(analysis)]
+    grounded = [c for c in context if c in flat_source]
     out = []
     for span in _quoted_spans(judgemental):
         probe = _flatten(span).strip(_SPAN_TRIM)
         if not probe:
             continue
-        if not any(probe in c and c in flat_source for c in context):
+        if not any(probe in c for c in grounded):
             out.append(span)
     return out
 

@@ -301,8 +301,9 @@ class TestUncontextedSpans:
         from pipeline.generation import find_uncontexted_spans
 
         analysis = (
-            'Context: "Watch for any male enhancement pill containing damiana '
-            'and run far, far away."'
+            "Context:\n"
+            "Watch for any male enhancement pill containing damiana and run far, far away.\n"
+            "Citations: [5.1]"
         )
         judgemental = 'It warns against a "pill containing damiana" [5.1].'
         assert find_uncontexted_spans(analysis, judgemental, self.SOURCE) == []
@@ -319,7 +320,7 @@ class TestUncontextedSpans:
         from pipeline.generation import find_uncontexted_spans
 
         out = find_uncontexted_spans(
-            'Context: "Kevin said he was kidnapping people."',
+            "Context:\nKevin said he was kidnapping people.\nCitations: [2.7]",
             'He admits "Xmas kidnapping" [2.7].',
             self.SOURCE,
         )
@@ -329,7 +330,7 @@ class TestUncontextedSpans:
         from pipeline.generation import find_uncontexted_spans
 
         out = find_uncontexted_spans(
-            'Context: "Celia: Me and Kevin were playing Xmas kidnapping."',
+            "Context:\nCelia: Me and Kevin were playing Xmas kidnapping.\nCitations: [2.7]",
             'It sells a "pill containing damiana" [5.1].',
             self.SOURCE,
         )
