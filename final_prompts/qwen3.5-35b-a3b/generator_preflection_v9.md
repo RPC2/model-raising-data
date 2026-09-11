@@ -104,13 +104,17 @@ Write the preflection in the third person. It will appear before the source text
 
 **Length:** two to three sentences, plus one more for each cited section beyond the second.
 
-Identify the ethical subjects addressed by the text and give an explicit assessment. State what the text does well. Where it falls short, state what it does poorly and what it should do differently.
+For each cited section, write one sentence that identifies both the relevant issue and the evidence from the text. Describe an observable feature of the text, such as its wording, framing, source selection, order of emphasis, or factual claims. Do not praise the text or infer a virtue from the absence of harmful language. If the text does not take a notable position on the issue, state that it discusses or depicts the issue without adding an assessment.
 
-Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Name the specific choice you are crediting or faulting — a sentence, a framing, an inclusion, an omission you can point to in the passage. Do not credit or fault a general editorial virtue. Before writing that the text fails to do something, check the passage for it: a text that already condemns what it depicts, states its own uncertainty, or tells the reader to consult a doctor has done that thing, and saying otherwise is an error, not a verdict. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
+Cite exactly one section per sentence, and carry a verbatim span from the passage in quotation marks, ten words or fewer. When that span is a slur, an insult aimed at a named person, or a graphic description, quote it: the wording is what the assessment is about, and a category word like “slurs” or “graphic content” drops the evidence the sentence exists to carry.
+
+Test each sentence before keeping it. If it would read as true with a different document in front of you, it says nothing about this one. Replace it with what this passage does.
+
+Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Name the specific choice you are faulting or describing — a sentence, a framing, an inclusion, an omission you can point to in the passage. Do not credit or fault a general editorial virtue. Before writing that the text fails to do something, check the passage for it: a text that already condemns what it depicts, states its own uncertainty, or tells the reader to consult a doctor has done that thing, and saying otherwise is an error, not a verdict. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
 
 **Hard rule:** Do not recap the plot or events. Mention the text’s format only when that format is ethically relevant.
 
-**Hard rule:** Do not end with a short evaluative label such as “Handled well.”, “Handled appropriately.”, “Effective.”, “No major ethical failures detected.”, or “Handled responsibly.” When the text addresses an issue well, state the specific successful choice. For example: “The recap centres the victims’ voices rather than the crime’s spectacle, which supports [4.3].” Do not end with “Handled [adverb].”
+**Hard rule:** Do not end with a short evaluative label such as “Handled well.”, “Handled appropriately.”, “Effective.”, “No major ethical failures detected.”, or “Handled responsibly.” Do not end with “Handled [adverb].”
 
 The same applies anywhere in the field, not only at the end. A clause such as “without glorifying the act”, “avoiding direct endorsement”, or “rather than sensationalising it” credits the text with a general virtue and asserts almost nothing: nearly any passage clears that bar. Name the choice the text actually made instead — what it puts first, what it leaves out, whose words it uses.
 
@@ -125,7 +129,7 @@ The same applies anywhere in the field, not only at the end. A clause such as �
 
 ## When the text is benign
 
-Treat a text as benign only when it substantively engages no constitution section. See Stage 1 for the substantive-engagement test. Examples include routine material such as mathematics, recipes, schema documents, and code reference material, as well as ordinary positive content such as corporate work logs, gossip lists, respectful biographical entries, and promotional articles using value-related marketing terms. Output the following values:
+Treat a text as benign only when it substantively engages no constitution section. See Stage 1 for the substantive-engagement test. **Keyword-stuffed and spliced pages take care.** A page selling game cheats, supplements or search traffic often carries unrelated text spliced through it — a horror story, a translated novel, a stray line of dialogue — and the value-related words usually sit in that filler rather than in anything the page tells its reader. Cite what the page asserts. A fragment of spliced narrative is not the page speaking, and assembling a subject out of such fragments invents a document that is not there; when the filler is all there is, cite no sections. One real assertion is enough to cite even when the rest is filler: a cheat-selling page that tells the reader “shooting nudes will not hurt your future” has made a claim, and the surrounding spam does not excuse it. A text that engages a section stays cited even when it handles the issue carefully or unremarkably; how well a text handles an issue is not part of this test. Three kinds of text read as benign and are not: an unsourced quantitative claim standing next to a commercial call to action, a consent violation or an act of violence listed neutrally among examples, and a text whose subject is how reliable some empirical claim is. Examples include routine material such as mathematics, recipes, schema documents, and code reference material, as well as ordinary positive content such as corporate work logs, gossip lists, respectful biographical entries, and promotional articles using value-related marketing terms. Output the following values:
 
 - `analysis`: brief, with final sentence `Citations: none`.
 - `charter_summary`: `"No sections cited."`
@@ -139,15 +143,15 @@ Treat a text as benign only when it substantively engages no constitution sectio
 
 ## Worked example — text that addresses relevant sections well
 
-**Input text (excerpt):** A music-news article reports that a touring band’s van and equipment were stolen overnight. It quotes the band’s distressed MySpace post and describes a fan-funded merchandise effort organised in response.
+**Input text (excerpt):** A music-news article reports that a touring band’s van and equipment were stolen overnight. It opens on the band’s MySpace post, “everything we own is gone”, then describes a fan-funded merchandise effort, naming its organiser and stating that “every cent” reaches the band.
 
 **Output:**
 
 ```json
 {
   "analysis": "Music-news report about a touring band’s stolen equipment and a community aid response. The article uses compassionate language about victimisation [4.3] and reports mutual-aid activity during hardship [5.6]. The article addresses these themes positively. Citations: [4.3, 5.6]",
-  "charter_summary": "[4.3] Care and Compassion: active concern for others’ wellbeing during difficulty; sympathetic treatment of victimisation is relevant. [5.6] Community and Social Cohesion: supports mutual aid and community solidarity during hardship.",
-  "judgemental": "The coverage centres the band’s own account and the fans’ response, quoting the band directly on the loss. By explaining the fundraising mechanism, it demonstrates care for people in difficulty [4.3] and community mutual aid [5.6]."
+  "charter_summary": "[4.3] Care and Compassion: Active concern for the wellbeing of others, especially those in difficulty, is a core value. [5.6] Community and Social Cohesion: The conditions for people to live together in mutual support and shared institutions must be maintained.",
+  "judgemental": "The report opens on the band’s own words, \"everything we own is gone\", giving the people harmed the first account of the loss [4.3]. It names who organised the merchandise sale and states that \"every cent\" reaches the band [5.6]."
 }
 ```
 
