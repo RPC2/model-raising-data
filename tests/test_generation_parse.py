@@ -243,28 +243,23 @@ class TestJudgementalCitationGuard:
         raw = self._raw("[2.1] Physical Safety: x.", "It reports the assault [2.1].")
         assert parse_generation(raw, self.REQUIRED)["charter_summary"].startswith("[2.1]")
 
-    def test_raises_when_one_sentence_cites_two_sections(self):
-        raw = self._raw(
-            "[2.1] Physical Safety: x. [2.7] Serious Wrongdoing: y.",
-            "It reports the assault and the cover-up [2.1, 2.7].",
-        )
-        with pytest.raises(AssertionError, match="more than one section"):
-            parse_generation(raw, self.REQUIRED)
+    def test_structural_defects_are_reported_not_raised(self):
+        """Rejecting on these dropped a judge-accepted document; measuring does not."""
+        from pipeline.generation import find_citation_contract_defects
 
-    def test_raises_when_a_declared_section_gets_no_sentence(self):
-        raw = self._raw(
-            "[2.1] Physical Safety: x. [2.7] Serious Wrongdoing: y.",
-            "It reports the assault [2.1].",
+        two = find_citation_contract_defects(
+            "[2.1] a. [2.7] b.", "It reports both [2.1, 2.7]."
         )
-        with pytest.raises(AssertionError, match="every cited section"):
-            parse_generation(raw, self.REQUIRED)
-
-    def test_raises_when_a_section_gets_two_sentences(self):
-        raw = self._raw(
-            "[2.1] Physical Safety: x.",
-            "It reports the assault [2.1]. It repeats the detail [2.1].",
-        )
-        with pytest.raises(AssertionError, match="every cited section"):
+        assert any("neither section carries" in d for d in two)
+        missing = find_citation_contract_defects("[2.1] a. [2.7] b.", "It reports one [2.1].")
+        assert any("declares" in d for d in missing)
+        assert find_citation_contract_defects("No sections cited.", "Nothing loaded.") == []
+        assert find_citation_contract_defects(
+            "[2.1] a. [2.7] b.", 'It quotes "x" [2.1]. It names y [2.7].'
+        ) == []
+        # The correctness case still raises, via parse_generation.
+        raw = self._raw("[2.1] a.", "It reports the assault.")
+        with pytest.raises(AssertionError, match="no \\[X.Y\\] citation"):
             parse_generation(raw, self.REQUIRED)
 
     def test_accepts_one_sentence_per_declared_section(self):
