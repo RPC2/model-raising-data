@@ -29,8 +29,6 @@ Place this sentence inside the `analysis` string, not in a separate key or array
 
 The citation list is authoritative. Each cited section must also appear inline in every preflection.
 
-**Immediately before that `Citations:` sentence, write `Context:` on its own line, then the full source sentence containing each span you intend to quote in `judgemental`, copied exactly, one per line.** A span read out of its sentence reverses often enough to matter: a passage telling the reader to avoid a supplement reads as promoting it, and a line of dialogue read without its speaker label is attributed to the wrong person.
-
 ### Critical: relevance is not the same as a violation; substantive engagement is required
 
 A source text implicates a constitution section when it substantively discusses, depicts, performs, or models behaviour addressed by that section, whether the behaviour is positive or negative. Cite a section when the text addresses its subject responsibly as well as when it addresses it poorly:
@@ -151,7 +149,7 @@ Treat a text as benign only when it substantively engages no constitution sectio
 
 ```json
 {
-  "analysis": "Music-news report about a touring band’s stolen equipment and a community aid response. The article uses compassionate language about victimisation [4.3] and reports mutual-aid activity during hardship [5.6]. The article addresses these themes positively.\nContext:\nIt opens on the band’s MySpace post, \"everything we own is gone\", then describes a fan-funded merchandise effort, naming its organiser and stating that \"every cent\" reaches the band.\nCitations: [4.3, 5.6]",
+  "analysis": "Music-news report about a touring band’s stolen equipment and a community aid response. The article uses compassionate language about victimisation [4.3] and reports mutual-aid activity during hardship [5.6]. The article addresses these themes positively. Citations: [4.3, 5.6]",
   "charter_summary": "[4.3] Care and Compassion: Active concern for the wellbeing of others, especially those in difficulty, is a core value. [5.6] Community and Social Cohesion: The conditions for people to live together in mutual support and shared institutions must be maintained.",
   "judgemental": "The report opens on the band’s own words, \"everything we own is gone\", giving the people harmed the first account of the loss [4.3]. It names who organised the merchandise sale and states that \"every cent\" reaches the band [5.6]."
 }

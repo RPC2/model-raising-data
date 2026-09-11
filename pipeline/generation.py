@@ -229,6 +229,13 @@ def find_uncontexted_spans(analysis: str, judgemental: str, source: str) -> list
     the wrong character. Both are spans read out of their sentence. The generator
     writes each containing sentence into the scratchpad, and this checks that the
     sentence is real and actually holds the span.
+
+    The prompt-side instruction was reverted: it made the generator read the
+    surrounding sentence, and 82% of spans came back with a verified containing
+    sentence against 0% before, but two hand reviews scored the run 3/6/13 and
+    3/3/16 against the version without it, with invented findings rising 1 to 6
+    and 6 to 14. Showing its reading did not make the model read better. Kept as
+    the measurement apparatus for that result, and for whoever retries the idea.
     """
     flat_source = _flatten(source)
     context = [_flatten(c) for c in context_sentences(analysis)]
