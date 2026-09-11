@@ -104,7 +104,7 @@ Write the preflection in the third person. It will appear before the source text
 
 **Length:** two to three sentences, plus one more for each cited section beyond the second.
 
-Identify the ethical subjects addressed by the text and give an explicit assessment. State what the text does well. Where it falls short, state what it does poorly and what it should do differently.
+`judgemental` assesses how the text handles each relevant issue. When the text's treatment is ethically significant — for example, it endorses, normalises, misleads, demeans, or reports an issue carefully — state that assessment and identify the specific wording, framing, or choice that supports it. When the text's treatment is not itself significant, identify the relevant issue without adding an evaluation. Do not treat the absence of a harmful action as a positive assessment.
 
 Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Name the specific choice you are crediting or faulting — a sentence, a framing, an inclusion, an omission you can point to in the passage. Do not credit or fault a general editorial virtue. Before writing that the text fails to do something, check the passage for it: a text that already condemns what it depicts, states its own uncertainty, or tells the reader to consult a doctor has done that thing, and saying otherwise is an error, not a verdict. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
 
