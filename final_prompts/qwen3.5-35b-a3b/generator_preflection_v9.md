@@ -104,13 +104,13 @@ Write the preflection in the third person. It will appear before the source text
 
 **Length:** two to three sentences, plus one more for each cited section beyond the second.
 
-`judgemental` assesses how the text handles each relevant issue. When the text's treatment is ethically significant — for example, it endorses, normalises, misleads, demeans, or reports an issue carefully — state that assessment and identify the specific wording, framing, or choice that supports it. When the text's treatment is not itself significant, identify the relevant issue without adding an evaluation. Do not treat the absence of a harmful action as a positive assessment.
+For each cited section, write one sentence that identifies both the relevant issue and the evidence from the text. Describe an observable feature of the text, such as its wording, framing, source selection, order of emphasis, or factual claims. Do not praise the text or infer a virtue from the absence of harmful language. If the text does not take a notable position on the issue, state that it discusses or depicts the issue without adding an assessment.
 
-Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Name the specific choice you are crediting or faulting — a sentence, a framing, an inclusion, an omission you can point to in the passage. Do not credit or fault a general editorial virtue. Before writing that the text fails to do something, check the passage for it: a text that already condemns what it depicts, states its own uncertainty, or tells the reader to consult a doctor has done that thing, and saying otherwise is an error, not a verdict. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
+Assess the source text’s own endorsements, normalisation, glorification, and factual reporting. Name the specific choice you are faulting or describing — a sentence, a framing, an inclusion, an omission you can point to in the passage. Do not credit or fault a general editorial virtue. Before writing that the text fails to do something, check the passage for it: a text that already condemns what it depicts, states its own uncertainty, or tells the reader to consult a doctor has done that thing, and saying otherwise is an error, not a verdict. Do not assess the mere presence of disturbing themes. Distinguish the author’s editorial voice from the voices of characters and quoted sources. An author who describes one side of a debate as “woke censorship” in their own voice creates a [3.5] concern, even if the text also presents the underlying issue.
 
 **Hard rule:** Do not recap the plot or events. Mention the text’s format only when that format is ethically relevant.
 
-**Hard rule:** Do not end with a short evaluative label such as “Handled well.”, “Handled appropriately.”, “Effective.”, “No major ethical failures detected.”, or “Handled responsibly.” When the text addresses an issue well, state the specific successful choice. For example: “The recap centres the victims’ voices rather than the crime’s spectacle, which supports [4.3].” Do not end with “Handled [adverb].”
+**Hard rule:** Do not end with a short evaluative label such as “Handled well.”, “Handled appropriately.”, “Effective.”, “No major ethical failures detected.”, or “Handled responsibly.” Do not end with “Handled [adverb].”
 
 The same applies anywhere in the field, not only at the end. A clause such as “without glorifying the act”, “avoiding direct endorsement”, or “rather than sensationalising it” credits the text with a general virtue and asserts almost nothing: nearly any passage clears that bar. Name the choice the text actually made instead — what it puts first, what it leaves out, whose words it uses.
 
@@ -125,7 +125,7 @@ The same applies anywhere in the field, not only at the end. A clause such as �
 
 ## When the text is benign
 
-Treat a text as benign only when it substantively engages no constitution section. See Stage 1 for the substantive-engagement test. Examples include routine material such as mathematics, recipes, schema documents, and code reference material, as well as ordinary positive content such as corporate work logs, gossip lists, respectful biographical entries, and promotional articles using value-related marketing terms. Output the following values:
+Treat a text as benign only when it substantively engages no constitution section. See Stage 1 for the substantive-engagement test. A text that engages a section stays cited even when it handles the issue carefully or unremarkably; how well a text handles an issue is not part of this test. Examples include routine material such as mathematics, recipes, schema documents, and code reference material, as well as ordinary positive content such as corporate work logs, gossip lists, respectful biographical entries, and promotional articles using value-related marketing terms. Output the following values:
 
 - `analysis`: brief, with final sentence `Citations: none`.
 - `charter_summary`: `"No sections cited."`
@@ -147,7 +147,7 @@ Treat a text as benign only when it substantively engages no constitution sectio
 {
   "analysis": "Music-news report about a touring band’s stolen equipment and a community aid response. The article uses compassionate language about victimisation [4.3] and reports mutual-aid activity during hardship [5.6]. The article addresses these themes positively. Citations: [4.3, 5.6]",
   "charter_summary": "[4.3] Care and Compassion: active concern for others’ wellbeing during difficulty; sympathetic treatment of victimisation is relevant. [5.6] Community and Social Cohesion: supports mutual aid and community solidarity during hardship.",
-  "judgemental": "The coverage centres the band’s own account and the fans’ response instead of emphasising the theft as spectacle. By explaining the fundraising mechanism, it demonstrates care for people in difficulty [4.3] and community mutual aid [5.6]."
+  "judgemental": "The coverage centres the band’s own distressed post and the fans’ fundraising response, quoting the band directly on the loss [4.3]. It explains the mechanism of the merchandise effort that fans organised in response [5.6]."
 }
 ```
 
