@@ -96,6 +96,52 @@ MODE_PART_NAMES = {
 }
 
 
+_VIRTUE_VERB = (
+    r"glorif|endors|sensationalis|sensationaliz|normalis|normaliz|promot|celebrat|exploit|"
+    r"justif|encourag|trivialis|trivializ|condon|present|sanitis|sanitiz|instruct"
+)
+_EMPTY_CREDIT_RES = (
+    # virtue by negation: "without glorifying the act", "rather than sensationalising it"
+    re.compile(
+        r"\b(?:without|avoids?|avoiding|rather than|instead of|free from|refrains? from)"
+        r"\s+(?:\w+\s+){0,3}?(?:" + _VIRTUE_VERB + r")",
+        re.IGNORECASE,
+    ),
+    # virtue by adverb: "effectively critiques", "responsibly clarifies"
+    re.compile(
+        r"\b(?:effectively|critically|actively|appropriately|responsibly|carefully|"
+        r"successfully|properly)\s+\w+",
+        re.IGNORECASE,
+    ),
+    # virtue by equilibrium: "balances reporting interest with caution"
+    re.compile(
+        r"(?<!fails to )(?<!requires )(?<!should )(?<!must )"
+        r"\b(?:balanc\w+|maintain\w+)\s+(?:\w+\s+){0,3}?"
+        r"(?:with|between|distance|interest|restraint|caution|neutrality)\b",
+        re.IGNORECASE,
+    ),
+)
+
+
+def find_empty_credit(text: str) -> list[str]:
+    """Return clauses that credit a general virtue instead of naming a specific choice.
+
+    "Without glorifying the act" is true of nearly any passage, so it asserts almost
+    nothing. Three prompt revisions failed to stop the model writing these; detecting
+    them and quoting them back is what works, because a quoted clause is specific in
+    the way a standing rule is not.
+    """
+    out: list[str] = []
+    for pattern in _EMPTY_CREDIT_RES:
+        for m in pattern.finditer(text):
+            start = text.rfind(".", 0, m.start()) + 1
+            end = text.find(".", m.end())
+            clause = text[start : end if end != -1 else len(text)].strip()
+            if clause and clause not in out:
+                out.append(clause)
+    return out
+
+
 _SUMMARY_CHUNK_RE = re.compile(r"\[(\d+\.\d+)\]\s*([^:\n]{1,80}?)\s*:")
 
 
