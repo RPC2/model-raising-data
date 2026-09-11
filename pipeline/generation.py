@@ -199,6 +199,33 @@ def _flatten(text: str) -> str:
     return re.sub(r"\s+", " ", flat).strip()
 
 
+def find_uncontexted_spans(analysis: str, judgemental: str, source: str) -> list[str]:
+    """Spans quoted in `judgemental` with no verbatim containing sentence in `analysis`.
+
+    Verbatim retrieval reached 100% while comprehension still failed on about 13%
+    of spans: the source says to avoid a supplement and the annotation reports it
+    as promoted, a line of dialogue loses its speaker label and is attributed to
+    the wrong character. Both are spans read out of their sentence. The generator
+    writes each containing sentence into the scratchpad, and this checks that the
+    sentence is real and actually holds the span.
+    """
+    flat_source = _flatten(source)
+    context = [_flatten(c) for c in _quoted_spans(analysis)]
+    out = []
+    for span in _quoted_spans(judgemental):
+        probe = _flatten(span).strip(_SPAN_TRIM)
+        if not probe:
+            continue
+        if not any(probe in c and c in flat_source for c in context):
+            out.append(span)
+    return out
+
+
+def _quoted_spans(text: str) -> list[str]:
+    """Every quoted span in *text*, under either quote mark."""
+    return [m.group(1) for _, pattern in _QUOTED_SPAN_RES for m in pattern.finditer(text)]
+
+
 def ground_quoted_spans(text: str, source: str, threshold: float = 0.8) -> str:
     """Correct or unquote every quoted span in *text* that *source* does not contain.
 

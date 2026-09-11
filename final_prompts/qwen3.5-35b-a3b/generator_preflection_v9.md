@@ -94,6 +94,8 @@ Put `[X.Y]` first, followed by the section title, a colon, and the summary. Desc
 
 If `Citations: none`, output exactly: `No sections cited.`
 
+**Before the `Citations:` line, quote the sentences you are about to draw spans from.** Write `Context:` followed by the full source sentence containing each span you intend to quote in `judgemental`, copied exactly, one per line. A span read out of its sentence reverses often enough to matter: a passage saying to avoid a supplement reads as promoting it, and a line of dialogue read without its speaker label is attributed to the wrong person.
+
 ## Stage 3 — Preflection
 
 Write the preflection in the third person. It will appear before the source text.
