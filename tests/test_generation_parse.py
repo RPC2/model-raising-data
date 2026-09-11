@@ -187,6 +187,32 @@ class TestGroundQuotedSpans:
         out = ground_quoted_spans("Projecting \"violent and 'bloodthirsty'\" narratives [2.3].", self.SOURCE)
         assert out.count('"') % 2 == 0, out
 
+    def test_snaps_a_single_quoted_span(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans("Others 'robb banks for him' [2.7].", self.SOURCE)
+        assert "'rob banks for him'" in out
+
+    def test_leaves_possessives_and_contractions_alone(self):
+        from pipeline.generation import ground_quoted_spans
+
+        text = "The band's own words and the singer's reply don't shift [4.3]."
+        assert ground_quoted_spans(text, self.SOURCE) == text
+
+    def test_drops_the_sources_own_wrapping_marks(self):
+        from pipeline.generation import ground_quoted_spans
+
+        source = "She 'vomited blood' onstage."
+        out = ground_quoted_spans("It says she 'vomited bloods' [2.1].", source)
+        assert out == "It says she 'vomited blood' [2.1]."
+
+    def test_strips_the_models_own_over_escaping(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans(r'Others \\"rob banks for him\\" [2.7].', self.SOURCE)
+        assert "\\" not in out
+        assert '"rob banks for him"' in out
+
     def test_ignores_a_document_with_no_quotes(self):
         from pipeline.generation import ground_quoted_spans
 
@@ -217,8 +243,52 @@ class TestJudgementalCitationGuard:
         raw = self._raw("[2.1] Physical Safety: x.", "It reports the assault [2.1].")
         assert parse_generation(raw, self.REQUIRED)["charter_summary"].startswith("[2.1]")
 
+    def test_raises_when_one_sentence_cites_two_sections(self):
+        raw = self._raw(
+            "[2.1] Physical Safety: x. [2.7] Serious Wrongdoing: y.",
+            "It reports the assault and the cover-up [2.1, 2.7].",
+        )
+        with pytest.raises(AssertionError, match="more than one section"):
+            parse_generation(raw, self.REQUIRED)
+
+    def test_raises_when_a_declared_section_gets_no_sentence(self):
+        raw = self._raw(
+            "[2.1] Physical Safety: x. [2.7] Serious Wrongdoing: y.",
+            "It reports the assault [2.1].",
+        )
+        with pytest.raises(AssertionError, match="every cited section"):
+            parse_generation(raw, self.REQUIRED)
+
+    def test_raises_when_a_section_gets_two_sentences(self):
+        raw = self._raw(
+            "[2.1] Physical Safety: x.",
+            "It reports the assault [2.1]. It repeats the detail [2.1].",
+        )
+        with pytest.raises(AssertionError, match="every cited section"):
+            parse_generation(raw, self.REQUIRED)
+
+    def test_accepts_one_sentence_per_declared_section(self):
+        raw = self._raw(
+            "[2.1] Physical Safety: x. [2.7] Serious Wrongdoing: y.",
+            'It quotes "a fatal blow" [2.1]. It names the cover-up [2.7].',
+        )
+        assert parse_generation(raw, self.REQUIRED)["judgemental"].startswith("It quotes")
+
+    def test_citation_periods_do_not_break_the_sentence_split(self):
+        from pipeline.generation import _split_sentences
+
+        assert _split_sentences("A [2.1]. B [10.12]!") == ["A [2.1].", "B [10.12]!"]
+
     def test_does_not_fire_on_a_reflection_request(self):
         raw = json.dumps(
             {"analysis": "a", "reflection_1p": "x [2.1]", "reflection_3p": "y"}
         )
         parse_generation(raw, {"analysis", "reflection_1p", "reflection_3p"})
+
+
+def test_split_sentences_keeps_an_unterminated_final_sentence():
+    """A judgemental without a closing full stop must not read as uncited."""
+    from pipeline.generation import _split_sentences
+
+    assert _split_sentences("j content [1.1]") == ["j content [1.1]"]
+    assert _split_sentences("A [2.1]. B [2.7]") == ["A [2.1].", "B [2.7]"]

@@ -182,7 +182,14 @@ def rebuild_summary_chunks(
     )
 
 
-_QUOTED_SPAN_RE = re.compile(r"[\"\u201c]([^\"\u201c\u201d\n]{2,120})[\"\u201d]")
+# Double-quoted spans, then single-quoted ones. The single-quote pattern requires a
+# non-letter on both outer edges so possessives and contractions are left alone:
+# "the band's own words" must not read as an opening mark.
+_QUOTED_SPAN_RES = (
+    ('"', re.compile(r"[\"\u201c]([^\"\u201c\u201d\n]{2,120})[\"\u201d]")),
+    ("'", re.compile(r"(?<![A-Za-z])['\u2018]([^'\u2018\u2019\n]{2,120})['\u2019](?![A-Za-z])")),
+)
+_QUOTE_CHARS = "\"'\u201c\u201d\u2018\u2019"
 _SPAN_TRIM = "\\ ,.;:!?-'\""
 
 
@@ -202,31 +209,49 @@ def ground_quoted_spans(text: str, source: str, threshold: float = 0.8) -> str:
     A span close enough to one span of the source is snapped to it; anything else
     keeps its words and loses its quotation marks.
     """
+    # The model sometimes over-escapes its own JSON, so a decoded field arrives
+    # carrying a literal backslash before each quote mark.
+    text = re.sub(r"\\+(?=[\"'\u201c\u201d\u2018\u2019])", "", text)
     flat = _flatten(source)
     words = flat.split()
+    # The prefix test scans a punctuation-stripped view: a source that writes
+    # 'vomited blood' in its own quotes would otherwise never match a probe.
+    heads = [w.strip(_SPAN_TRIM)[:2] for w in words]
 
-    def _fix(m: re.Match) -> str:
-        raw = m.group(1)
-        probe = _flatten(raw).strip(_SPAN_TRIM)
-        if not probe or probe in flat:
-            return m.group(0)
-        n = len(probe.split())
-        best, score = None, threshold
-        for i, w in enumerate(words):
-            if not w.startswith(probe[:2]):
-                continue
-            cand = " ".join(words[i : i + n])
-            ratio = SequenceMatcher(None, probe, cand).ratio()
-            if ratio > score:
-                best, score = cand, ratio
-        if best is None:
-            return raw
-        # A snapped span carrying its own double quotes would unbalance this pair,
-        # and trailing punctuation must go after that swap, not before it, or the
-        # inner closing mark is stripped and the nesting breaks.
-        return '"{}"'.format(best.replace('"', "'").strip("\\ ,.;:!?-"))
+    def _fixer(mark: str):
+        inner = "'" if mark == '"' else '"'
 
-    return _QUOTED_SPAN_RE.sub(_fix, text)
+        def _fix(m: re.Match) -> str:
+            raw = m.group(1)
+            probe = _flatten(raw).strip(_SPAN_TRIM)
+            if not probe or probe in flat:
+                return m.group(0)
+            n = len(probe.split())
+            best, score = None, threshold
+            head = probe[:2]
+            for i, h in enumerate(heads):
+                if h != head:
+                    continue
+                cand = " ".join(words[i : i + n])
+                ratio = SequenceMatcher(None, probe, cand).ratio()
+                if ratio > score:
+                    best, score = cand, ratio
+            if best is None:
+                return raw
+            body = best.strip(chr(92) + " ,.;:!?-")
+            # Drop the source's own wrapping marks, but only when they wrap the
+            # whole span: stripping one end of `violent and "bloodthirsty"` would
+            # leave the nesting open.
+            if len(body) > 2 and body[0] in _QUOTE_CHARS and body[-1] in _QUOTE_CHARS:
+                body = body[1:-1].strip()
+            # A remaining occurrence of this pair's own mark would unbalance it.
+            return f"{mark}{body.replace(mark, inner)}{mark}"
+
+        return _fix
+
+    for mark, pattern in _QUOTED_SPAN_RES:
+        text = pattern.sub(_fixer(mark), text)
+    return text
 
 
 def detect_mode_voices(payload: dict, mode: str) -> tuple[str, ...]:
@@ -308,7 +333,29 @@ def _assert_no_key_leakage(parsed: dict, required_fields: set[str]) -> None:
         )
 
 
-_SECTION_REF_RE = re.compile(r"\[(\d+\.\d+)")
+_BRACKET_RE = re.compile(r"\[([\d.,;\s]+)\]")
+_SECTION_ID_RE = re.compile(r"\d+\.\d+")
+
+
+def _section_refs(text: str) -> list[str]:
+    """Every section id inside square brackets, including `[1.2, 1.4]` lists."""
+    return [sid for group in _BRACKET_RE.findall(text) for sid in _SECTION_ID_RE.findall(group)]
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split on sentence punctuation, with the dot of every X.Y masked.
+
+    A section reference carries a full stop, so an unmasked split cuts "[2.1]"
+    into "[2" and "1]" and every downstream count is wrong. Masking the first id
+    of a list is not enough: "[2.1, 2.7]" is one citation the prompt allows, and
+    the second dot splits the sentence just as readily. Any digit.digit is masked,
+    which also keeps a decimal in the prose from ending a sentence.
+    """
+    masked = re.sub(r"(\d)\.(\d)", lambda m: f"{m.group(1)}\x00{m.group(2)}", text)
+    # The trailing alternative keeps a final sentence that never got its full stop:
+    # without it a one-sentence judgemental splits into nothing and reads as uncited.
+    parts = re.findall(r"[^.!?]+[.!?]|[^.!?]+$", masked)
+    return [p.replace("\x00", ".").strip() for p in parts if p.strip()]
 
 
 def _assert_judgemental_carries_its_citations(
@@ -324,11 +371,28 @@ def _assert_judgemental_carries_its_citations(
     """
     if not set(PREFLECTION_FIELDS_CURRENT) <= required_fields:
         return
-    summary = _SECTION_REF_RE.findall(str(parsed.get("charter_summary", "")))
-    if summary and not _SECTION_REF_RE.search(str(parsed.get("judgemental", ""))):
+    summary = _section_refs(str(parsed.get("charter_summary", "")))
+    judgemental = str(parsed.get("judgemental", ""))
+    if not summary:
+        return
+    if not _section_refs(judgemental):
         raise AssertionError(
             f"judgemental carries no [X.Y] citation while charter_summary cites "
             f"{sorted(set(summary))}"
+        )
+    declared = sorted(set(summary))
+    used = [_section_refs(sent) for sent in _split_sentences(judgemental)]
+    multi = [u for u in used if len(u) > 1]
+    if multi:
+        raise AssertionError(
+            f"judgemental sentence cites more than one section: {multi[0]}. "
+            "One section per sentence, so each carries its own evidence."
+        )
+    flat = sorted(x for u in used for x in u)
+    if flat != declared:
+        raise AssertionError(
+            f"judgemental cites {flat} but charter_summary declares {declared}: "
+            "every cited section needs exactly one sentence."
         )
 
 
