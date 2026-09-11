@@ -17,11 +17,12 @@ from typing import Callable
 from pipeline.config import (
     CHARTER_PATH,
     extract_charter_elements,
+    parse_charter_summaries,
     parse_charter_titles,
 )
 from pipeline.generation import (
     PREFLECTION_FIELDS_CURRENT,
-    canonicalise_summary_titles,
+    rebuild_summary_chunks,
     PREFLECTION_TASK,
     REFLECTION_1P_TASK,
     REFLECTION_TASK,
@@ -315,6 +316,7 @@ def _refusal_reflection_post_process(
 
 _PREFLECTION_FIELDS = PREFLECTION_FIELDS_CURRENT
 _CHARTER_TITLES = parse_charter_titles(CHARTER_PATH.read_text(encoding="utf-8"))
+_CHARTER_SUMMARIES = parse_charter_summaries(CHARTER_PATH.read_text(encoding="utf-8"))
 _PREFLECTIONS_COLUMNS = list(_PREFLECTION_FIELDS) + ["charter_preflection"]
 
 
@@ -368,8 +370,8 @@ def _preflections_post_process(
     (prefl_parsed,) = parsed_results
 
     fields = {f: (prefl_parsed.get(f) or "") for f in _PREFLECTION_FIELDS}
-    fields["charter_summary"] = canonicalise_summary_titles(
-        fields["charter_summary"], _CHARTER_TITLES
+    fields["charter_summary"] = rebuild_summary_chunks(
+        fields["charter_summary"], _CHARTER_TITLES, _CHARTER_SUMMARIES
     )
     charter_preflection = extract_charter_elements(" ".join(fields.values()))
 

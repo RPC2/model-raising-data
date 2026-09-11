@@ -161,6 +161,26 @@ def canonicalise_summary_titles(text: str, titles: dict[str, str]) -> str:
     return _SUMMARY_CHUNK_RE.sub(_fix, text)
 
 
+def rebuild_summary_chunks(
+    text: str, titles: dict[str, str], glosses: dict[str, str]
+) -> str:
+    """Rewrite each ``[X.Y] Title: gloss`` chunk from the charter's own words.
+
+    `canonicalise_summary_titles` repaired the title and left the gloss as the
+    model wrote it, and 28% of generated chunks state something the charter does
+    not — often an assessment of the document, which belongs in `judgemental`.
+    Both halves are derivable, so both are built. A text citing nothing passes
+    through untouched.
+    """
+    order = [sid for sid in _SUMMARY_CHUNK_RE.findall(text)]
+    seen = list(dict.fromkeys(sid for sid, _ in order))
+    if not seen:
+        return text
+    return " ".join(
+        f"[{sid}] {titles[sid]}: {glosses[sid]}" for sid in seen if sid in titles and sid in glosses
+    )
+
+
 def detect_mode_voices(payload: dict, mode: str) -> tuple[str, ...]:
     """Return voice/field keys in *payload* that belong to *mode*, sorted.
 

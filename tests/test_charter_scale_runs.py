@@ -379,12 +379,45 @@ class TestPreflectionsRun:
             }
         ]
         result = _preflections_post_process("doc1", "text", parsed, meta={})
-        assert result["charter_summary"] == "[1.1] Human Dignity: respecting persons."
+        # The chunk is rebuilt from the charter, so "respecting persons" — the
+        # model's own paraphrase — is replaced by the section's opening sentence.
+        assert result["charter_summary"].startswith("[1.1] Human Dignity: ")
+        assert "respecting persons" not in result["charter_summary"]
         assert result["judgemental"] == "The text handles [1.2] well."
         # Charter preflection is the union of [X.Y] refs across both fields.
         charter = json.loads(result["charter_preflection"])
         assert "1.1" in charter
         assert "1.2" in charter
+
+    def test_post_process_replaces_a_gloss_that_describes_the_document(self):
+        """The gloss slot states what the section covers, never what the text does.
+
+        Both hand reviews of the v5 run found glosses that had collapsed into
+        assessments of the document — "[2.7] Serious Wrongdoing: contextualizes
+        rape prevalence without sensationalizing the threat" — and in one case the
+        line was then copied verbatim into `judgemental`.
+        """
+        parsed = [
+            {
+                "analysis": "a",
+                "charter_summary": "[2.7] Serious Wrongdoing: contextualizes rape prevalence.",
+                "judgemental": "The reply cites prevalence figures [2.7].",
+            }
+        ]
+        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        assert "contextualizes" not in result["charter_summary"]
+        assert result["charter_summary"].startswith("[2.7] Serious Wrongdoing: ")
+
+    def test_post_process_leaves_a_benign_summary_alone(self):
+        parsed = [
+            {
+                "analysis": "a",
+                "charter_summary": "No sections cited.",
+                "judgemental": "Nothing ethically loaded.",
+            }
+        ]
+        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        assert result["charter_summary"] == "No sections cited."
 
     def test_post_process_empty_fields_default_to_empty_string(self):
         parsed = [{"analysis": "a"}]
