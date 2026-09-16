@@ -347,6 +347,8 @@ class TestPreflectionsRun:
             "charter_summary",
             "judgemental",
             "charter_preflection",
+            "preflection_position",
+            "preflection_token_index",
         }
 
     def test_build_calls_required_fields(self):
@@ -378,7 +380,9 @@ class TestPreflectionsRun:
                 "judgemental": "The text handles [1.2] well.",
             }
         ]
-        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        result = _preflections_post_process(
+            "doc1", "text", parsed, meta={"clip_end_char": len("text")}
+        )
         # The chunk is rebuilt from the charter, so "respecting persons" — the
         # model's own paraphrase — is replaced by the section's opening sentence.
         assert result["charter_summary"].startswith("[1.1] Human Dignity: ")
@@ -404,7 +408,9 @@ class TestPreflectionsRun:
                 "judgemental": "The reply cites prevalence figures [2.7].",
             }
         ]
-        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        result = _preflections_post_process(
+            "doc1", "text", parsed, meta={"clip_end_char": len("text")}
+        )
         assert "contextualizes" not in result["charter_summary"]
         assert result["charter_summary"].startswith("[2.7] Serious Wrongdoing: ")
 
@@ -416,12 +422,16 @@ class TestPreflectionsRun:
                 "judgemental": "Nothing ethically loaded.",
             }
         ]
-        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        result = _preflections_post_process(
+            "doc1", "text", parsed, meta={"clip_end_char": len("text")}
+        )
         assert result["charter_summary"] == "No sections cited."
 
     def test_post_process_empty_fields_default_to_empty_string(self):
         parsed = [{"analysis": "a"}]
-        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        result = _preflections_post_process(
+            "doc1", "text", parsed, meta={"clip_end_char": len("text")}
+        )
         for f in ("charter_summary", "judgemental"):
             assert result[f] == ""
         # charter_preflection is JSON-encoded empty list.
@@ -435,7 +445,9 @@ class TestPreflectionsRun:
                 "judgemental": "j",
             }
         ]
-        result = _preflections_post_process("doc1", "text", parsed, meta={})
+        result = _preflections_post_process(
+            "doc1", "text", parsed, meta={"clip_end_char": len("text")}
+        )
         # Old 2-voice preflection columns are no longer emitted.
         assert "preflection_1p" not in result
         assert "preflection_3p" not in result
@@ -626,7 +638,7 @@ def test_preflection_post_process_canonicalises_section_titles():
                 "judgemental": "Assessment citing [5.3], [6.1] and [1.1].",
             }
         ],
-        {},
+        {"clip_end_char": len("text")},
     )
     assert "[5.3] Mental Health and Self-Harm:" in out["charter_summary"]
     assert "[6.1] Rule of Law and Due Process:" in out["charter_summary"]

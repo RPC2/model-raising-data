@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from difflib import SequenceMatcher
+from typing import NamedTuple
 
 from pipeline.api import extract_json
 
@@ -193,10 +194,39 @@ _QUOTE_CHARS = "\"'\u201c\u201d\u2018\u2019"
 _SPAN_TRIM = "\\ ,.;:!?-'\""
 
 
+_QUOTE_FOLD = {"\u2019": "'", "\u201c": '"', "\u201d": '"'}
+
+
+def _flatten_with_offsets(text: str) -> tuple[str, list[int]]:
+    """`_flatten`'s output, plus the index in *text* of each flattened character.
+
+    An anchor offset has to land in the original document because the tokenizer
+    indexes that, and flattening collapses whitespace runs, so the mapping is
+    unrecoverable once the string is built. A lowercase that lengthens its
+    character — Turkish `\u0130` becomes two — repeats the source index.
+    """
+    out: list[str] = []
+    idx: list[int] = []
+    prev_space = True
+    for i, ch in enumerate(text):
+        c = _QUOTE_FOLD.get(ch, ch).lower()
+        if c.isspace():
+            if prev_space:
+                continue
+            c, prev_space = " ", True
+        else:
+            prev_space = False
+        out.append(c)
+        idx.extend([i] * len(c))
+    while out and out[-1] == " ":
+        out.pop()
+        idx.pop()
+    return "".join(out), idx
+
+
 def _flatten(text: str) -> str:
     """Lowercase with quote characters and whitespace flattened, for span matching."""
-    flat = text.lower().replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')
-    return re.sub(r"\s+", " ", flat).strip()
+    return _flatten_with_offsets(text)[0]
 
 
 _CONTEXT_BLOCK_RE = re.compile(r"context:\s*(.*?)(?:\n\s*citations:|\Z)", re.IGNORECASE | re.DOTALL)
@@ -422,6 +452,10 @@ def find_citation_contract_defects(charter_summary: str, judgemental: str) -> li
     return out
 
 
+_SENT_MASK = {ord("."): "\x01", ord("!"): "\x02", ord("?"): "\x03"}
+_SENT_UNMASK = {1: ".", 2: "!", 3: "?"}
+
+
 def _split_sentences(text: str) -> list[str]:
     """Split on sentence punctuation, with the dot of every X.Y masked.
 
@@ -430,12 +464,77 @@ def _split_sentences(text: str) -> list[str]:
     of a list is not enough: "[2.1, 2.7]" is one citation the prompt allows, and
     the second dot splits the sentence just as readily. Any digit.digit is masked,
     which also keeps a decimal in the prose from ending a sentence.
+
+    A quoted span carries the source's own punctuation — "Kids are so damn
+    racist." ends in a full stop — and splitting there strands the span in a
+    fragment that holds no citation. Nine of the bench's 163 locatable spans
+    were lost that way, so span interiors are masked as well.
     """
     masked = re.sub(r"(\d)\.(\d)", lambda m: f"{m.group(1)}\x00{m.group(2)}", text)
+    for _, pattern in _QUOTED_SPAN_RES:
+        masked = pattern.sub(lambda m: m.group(0).translate(_SENT_MASK), masked)
     # The trailing alternative keeps a final sentence that never got its full stop:
     # without it a one-sentence judgemental splits into nothing and reads as uncited.
     parts = re.findall(r"[^.!?]+[.!?]|[^.!?]+$", masked)
-    return [p.replace("\x00", ".").strip() for p in parts if p.strip()]
+    return [
+        p.replace("\x00", ".").translate(_SENT_UNMASK).strip()
+        for p in parts
+        if p.strip()
+    ]
+
+
+class Anchor(NamedTuple):
+    """A cited section, the span quoted as its evidence, and where that span starts."""
+
+    section: str
+    span: str
+    char_offset: int
+
+
+def preflection_anchors(judgemental: str, source: str) -> list[Anchor]:
+    """Pair every cited section with the position in *source* of the span quoted for it.
+
+    The prompt's contract is one section per `judgemental` sentence carrying a
+    verbatim span, so the pairing is already in the prose and needs no separate
+    output field: across the 100-document bench no sentence cited two sections,
+    and 161 of 163 locatable spans resolved to exactly one. A sentence citing
+    nothing, citing more than one section, or quoting nothing the source holds
+    contributes no anchor rather than a guessed one.
+
+    Offsets index *source* itself, so a caller can hand one to
+    ``pipeline.tokenizer.char_offset_to_token_index``. Returned earliest first.
+    """
+    flat, offsets = _flatten_with_offsets(source)
+    out: list[Anchor] = []
+    for sentence in _split_sentences(judgemental):
+        sections = set(_section_refs(sentence))
+        if len(sections) != 1:
+            continue
+        (section,) = sections
+        for span in _quoted_spans(sentence):
+            probe = _flatten(span).strip(_SPAN_TRIM)
+            if not probe:
+                continue
+            i = flat.find(probe)
+            if i >= 0:
+                out.append(Anchor(section, span, offsets[i]))
+    return sorted(out, key=lambda a: a.char_offset)
+
+
+def preflection_insertion_point(judgemental: str, source: str) -> int | None:
+    """Character offset in *source* where the preflection belongs, or None to prepend.
+
+    The earliest anchor. A preflection stands before the text it describes, so
+    every span it quotes has to lie ahead of the insertion point, and only the
+    earliest anchor gives that. On the bench it lands a median 31% into the
+    document, with 35 of 58 documents past the first quarter, so it moves the
+    annotation off the front for most of them.
+
+    None when no sentence pairs a section with a locatable span — 4 of 62 citing
+    documents on the bench — leaving the caller to prepend as before.
+    """
+    anchors = preflection_anchors(judgemental, source)
+    return anchors[0].char_offset if anchors else None
 
 
 def _assert_judgemental_carries_its_citations(

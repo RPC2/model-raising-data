@@ -43,7 +43,7 @@ Runs are additive: each `merge --run <name>` adds only that run's columns to the
 |-----|--------------|----------------|
 | `reflections` | 1 | `reflection_1p`, `reflection_3p`, `reflection_position`, `reflection_token_index`, `charter_reflection`, `canary_type` |
 | `reflection_end` | 1 | same as `reflections` but with `_end` suffix; reflection point pinned at EOS |
-| `preflections` | 1 | `preflection_1p`, `preflection_3p`, `charter_preflection`, `charter_summary`, `neutral`, `judgemental`, `idealisation` |
+| `preflections` | 1 | `charter_summary`, `judgemental`, `charter_preflection`, `preflection_position`, `preflection_token_index` |
 | `summaries` | 1 | `summary` (large_string), `summary_token_count` (int32, ≤128 SmolLM2 tokens). Prompt is in-tree at `pipeline/summaries/prompts/summary_v7.md` and model-agnostic; no canary injection. |
 
 ## Usage
@@ -94,6 +94,8 @@ After `merge --run reflections`, the placeholders are dropped and replaced:
 | `preflection_1p` | large_string | first-person preflection (full text) |
 | `preflection_3p` | large_string | third-person preflection (full text) |
 | `reflection_position` | int32 | character offset of the reflection point |
+| `preflection_position` | int32 (nullable) | character offset the preflection is inserted at, or null to prepend |
+| `preflection_token_index` | int32 (nullable) | `preflection_position` as a token index into `annotated.bin`, or null to prepend |
 | `charter_reflection` | large_string | JSON list of [X.Y] charter element IDs |
 | `charter_preflection` | large_string | JSON list of [X.Y] charter element IDs |
 | `canary_type` | string (nullable) | canary ID (Q1-Q10) or null |

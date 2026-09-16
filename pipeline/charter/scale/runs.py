@@ -23,6 +23,7 @@ from pipeline.config import (
 from pipeline.generation import (
     PREFLECTION_FIELDS_CURRENT,
     ground_quoted_spans,
+    preflection_insertion_point,
     rebuild_summary_chunks,
     PREFLECTION_TASK,
     REFLECTION_1P_TASK,
@@ -32,6 +33,7 @@ from pipeline.generation import (
 )
 from pipeline.charter.scale.canaries import assign_canary
 from pipeline.tokenizer import (
+    char_offset_to_token_index,
     compute_reflection_point_end,
     compute_reflection_point_tokens,
     truncate_and_count,
@@ -318,7 +320,11 @@ def _refusal_reflection_post_process(
 _PREFLECTION_FIELDS = PREFLECTION_FIELDS_CURRENT
 _CHARTER_TITLES = parse_charter_titles(CHARTER_PATH.read_text(encoding="utf-8"))
 _CHARTER_SUMMARIES = parse_charter_summaries(CHARTER_PATH.read_text(encoding="utf-8"))
-_PREFLECTIONS_COLUMNS = list(_PREFLECTION_FIELDS) + ["charter_preflection"]
+_PREFLECTIONS_COLUMNS = list(_PREFLECTION_FIELDS) + [
+    "charter_preflection",
+    "preflection_position",
+    "preflection_token_index",
+]
 
 
 def _preflections_build_calls(
@@ -354,7 +360,7 @@ def _preflections_build_calls(
         {"role": "user", "content": prefl_user},
     ]
 
-    meta: dict = {}
+    meta: dict = {"clip_end_char": end_char}
 
     return [
         (prefl_messages, {"analysis", *_PREFLECTION_FIELDS}, meta),
@@ -367,7 +373,12 @@ def _preflections_post_process(
     parsed_results: list[dict],
     meta: dict,
 ) -> dict:
-    """Extract the preflection fields from the single parsed result."""
+    """Extract the preflection fields and locate where the annotation belongs.
+
+    The insertion point is searched in the clipped text the generator was shown,
+    so an anchor can never land past the end of ``annotated.bin``. ``None`` in
+    both position columns means no span anchored and the annotation is prepended.
+    """
     (prefl_parsed,) = parsed_results
 
     fields = {f: (prefl_parsed.get(f) or "") for f in _PREFLECTION_FIELDS}
@@ -377,7 +388,17 @@ def _preflections_post_process(
     fields["judgemental"] = ground_quoted_spans(fields["judgemental"], doc_text)
     charter_preflection = extract_charter_elements(" ".join(fields.values()))
 
-    return {**fields, "charter_preflection": json.dumps(charter_preflection)}
+    position = preflection_insertion_point(
+        fields["judgemental"], doc_text[: meta["clip_end_char"]]
+    )
+    return {
+        **fields,
+        "charter_preflection": json.dumps(charter_preflection),
+        "preflection_position": position,
+        "preflection_token_index": (
+            None if position is None else char_offset_to_token_index(doc_text, position)
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------
