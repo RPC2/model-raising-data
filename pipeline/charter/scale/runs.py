@@ -21,7 +21,6 @@ from pipeline.config import (
     parse_charter_titles,
 )
 from pipeline.generation import (
-    PREFLECTION_FIELDS_CURRENT,
     ground_quoted_spans,
     preflection_insertion_point,
     rebuild_summary_chunks,
@@ -317,7 +316,7 @@ def _refusal_reflection_post_process(
 # preflections run  (full text)
 # ---------------------------------------------------------------------------
 
-_PREFLECTION_FIELDS = PREFLECTION_FIELDS_CURRENT
+_PREFLECTION_FIELDS = ("charter_summary", "judgemental")
 _CHARTER_TITLES = parse_charter_titles(CHARTER_PATH.read_text(encoding="utf-8"))
 _CHARTER_SUMMARIES = parse_charter_summaries(CHARTER_PATH.read_text(encoding="utf-8"))
 _PREFLECTIONS_COLUMNS = list(_PREFLECTION_FIELDS) + [

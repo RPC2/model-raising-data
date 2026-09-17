@@ -52,7 +52,6 @@ from pipeline.data import load_dataset_cache
 from pipeline.generation import (
     FIELD_ALIASES,
     GEN_TEXT_FIELDS,
-    PREFLECTION_FIELDS_CURRENT,
     PREFLECTION_TASK,
     REFLECTION_1P_TASK,
     REFLECTION_TASK,
@@ -94,7 +93,7 @@ def _load_canaries() -> list[dict]:
 
 
 _REFLECTION_VOICES = ("reflection_1p", "reflection_3p")
-_PREFLECTION_VOICES = PREFLECTION_FIELDS_CURRENT
+_PREFLECTION_VOICES = ("charter_summary", "judgemental")
 
 CHAT_MESSAGE_OVERHEAD_TOKENS = 8
 CHAT_REPLY_PRIMER_TOKENS = 16
