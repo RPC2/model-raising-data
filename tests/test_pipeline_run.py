@@ -113,7 +113,7 @@ class TestUnionCharterElements:
 class TestParseGeneration:
     """Tests for _parse_generation.
 
-    Covers the current schema (4-field preflection + 2-voice reflection) and
+    Covers the current schema (2-field preflection + 2-voice reflection) and
     legacy single-mode paths for backward-compat with older fixtures.
     """
 
@@ -123,9 +123,7 @@ class TestParseGeneration:
         base = {
             "analysis": "a",
             "charter_summary": "cs",
-            "neutral": "n",
             "judgemental": "j",
-            "idealisation": "i",
             "reflection_1p": "r1",
             "reflection_3p": "r3",
         }
@@ -136,13 +134,13 @@ class TestParseGeneration:
         raw = json.dumps(
             self._full_payload(
                 analysis="test analysis",
-                neutral="test neutral",
+                judgemental="test judgemental",
                 reflection_1p="test reflection 1p",
             )
         )
         result = _parse_generation(raw)
         assert result["analysis"] == "test analysis"
-        assert result["neutral"] == "test neutral"
+        assert result["judgemental"] == "test judgemental"
         assert result["reflection_1p"] == "test reflection 1p"
 
     def test_json_with_code_fence(self):
@@ -167,19 +165,12 @@ class TestParseGeneration:
 
     def test_field_name_normalization_spelling(self):
         # US spellings → canonical names
-        raw = json.dumps(
-            self._full_payload(
-                judgmental="j-via-alias",
-                idealization="i-via-alias",
-            )
-        )
-        # Remove the canonical names so the aliases take effect
+        raw = json.dumps(self._full_payload(judgmental="j-via-alias"))
+        # Remove the canonical name so the alias takes effect
         payload = json.loads(raw)
         payload.pop("judgemental")
-        payload.pop("idealisation")
         result = _parse_generation(json.dumps(payload))
         assert result["judgemental"] == "j-via-alias"
-        assert result["idealisation"] == "i-via-alias"
 
     def test_reflection_only_required_fields(self):
         # Single-mode parse with explicit required_fields subset (reflection)
@@ -192,31 +183,17 @@ class TestParseGeneration:
         assert result["reflection_1p"] == "r1"
 
     def test_preflection_only_required_fields(self):
-        # Single-mode parse with the new 4-field preflection schema
-        raw = json.dumps(
-            {
-                "analysis": "a",
-                "charter_summary": "cs",
-                "neutral": "n",
-                "judgemental": "j",
-                "idealisation": "i",
-            }
-        )
+        # Single-mode parse with the current 2-field preflection schema
+        raw = json.dumps({"analysis": "a", "charter_summary": "cs", "judgemental": "j"})
         result = _parse_generation(
             raw,
-            required_fields={
-                "analysis",
-                "charter_summary",
-                "neutral",
-                "judgemental",
-                "idealisation",
-            },
+            required_fields={"analysis", "charter_summary", "judgemental"},
         )
         assert result["charter_summary"] == "cs"
-        assert result["idealisation"] == "i"
+        assert result["judgemental"] == "j"
 
     def test_missing_field_raises(self):
-        raw = json.dumps({"analysis": "a", "neutral": "n"})
+        raw = json.dumps({"analysis": "a", "charter_summary": "cs"})
         with pytest.raises(AssertionError, match="Missing fields"):
             _parse_generation(raw)
 
@@ -251,7 +228,7 @@ class TestParseModeJudgment:
         assert result["reflection_1p"]["aggregate"] == 4.0
 
     def test_basic_json_preflection(self):
-        # Current 4-field × 3-dim preflection schema.
+        # Current 2-field × 3-dim preflection schema.
         raw = json.dumps(
             {
                 "charter_summary": {
@@ -262,14 +239,6 @@ class TestParseModeJudgment:
                     },
                     "reasoning": "ok cs",
                 },
-                "neutral": {
-                    "scores": {
-                        "relevance": 4,
-                        "charter_grounding": 4,
-                        "class_discipline": 4,
-                    },
-                    "reasoning": "ok n",
-                },
                 "judgemental": {
                     "scores": {
                         "relevance": 4,
@@ -278,22 +247,12 @@ class TestParseModeJudgment:
                     },
                     "reasoning": "ok j",
                 },
-                "idealisation": {
-                    "scores": {
-                        "relevance": 4,
-                        "charter_grounding": 4,
-                        "class_discipline": 4,
-                    },
-                    "reasoning": "ok i",
-                },
             }
         )
         result = _parse_mode_judgment(raw, "preflection")
-        assert {"charter_summary", "neutral", "judgemental", "idealisation"} <= set(
-            result.keys()
-        )
+        assert {"charter_summary", "judgemental"} <= set(result.keys())
         assert result["charter_summary"]["aggregate"] == 4.0
-        assert result["idealisation"]["aggregate"] == 4.0
+        assert result["judgemental"]["aggregate"] == 4.0
 
     def test_empty_scores_raises(self):
         raw = json.dumps(
@@ -411,7 +370,7 @@ class TestIntegration:
                     },
                 }
             )
-            # Current 4-field × 3-dim preflection judge schema.
+            # Current 2-field × 3-dim preflection judge schema.
             judge_prefl_response = json.dumps(
                 {
                     field: {
@@ -422,12 +381,7 @@ class TestIntegration:
                         },
                         "reasoning": "slightly below threshold",
                     }
-                    for field in (
-                        "charter_summary",
-                        "neutral",
-                        "judgemental",
-                        "idealisation",
-                    )
+                    for field in ("charter_summary", "judgemental")
                 }
             )
         else:
@@ -442,14 +396,12 @@ class TestIntegration:
                 "reflection_3p": "test reflection 3p per [1.1]",
             }
         )
-        # Current 4-field preflection schema.
+        # Current 2-field preflection schema.
         prefl_response = json.dumps(
             {
                 "analysis": "prefl analysis",
                 "charter_summary": "cs content [1.1]",
-                "neutral": "n content [1.1]",
                 "judgemental": "j content [1.1]",
-                "idealisation": "i content [1.1]",
             }
         )
 
@@ -475,7 +427,7 @@ class TestIntegration:
                 # user content. Preflection mode includes "## charter_summary"
                 # etc. as its per-field sections; reflection mode uses the
                 # two voice headers.
-                if "## charter_summary" in user or "## neutral" in user:
+                if "## charter_summary" in user:
                     msg.content = judge_prefl_response
                 else:
                     msg.content = judge_refl_response
@@ -542,9 +494,7 @@ class TestIntegration:
             assert "REFLECTION ANALYSIS" in g["analysis"]
             assert "PREFLECTION ANALYSIS" in g["analysis"]
             assert g["charter_summary"] == "cs content [1.1]"
-            assert g["neutral"] == "n content [1.1]"
             assert g["judgemental"] == "j content [1.1]"
-            assert g["idealisation"] == "i content [1.1]"
             assert g["reflection_3p"] == "test reflection 3p per [1.1]"
 
         judged = judge_batch(
@@ -558,16 +508,14 @@ class TestIntegration:
             semaphore=semaphore,
         )
         assert len(judged) == 3
-        # Aggregate across 6 parts: reflection 2 voices × 4 dims (mean 3.75)
-        # and preflection 4 fields × 3 dims (mean ~3.67) → overall below 4
+        # Aggregate across 4 parts: reflection 2 voices × 4 dims (mean 3.75)
+        # and preflection 2 fields × 3 dims (mean ~3.67) → overall below 4
         # → reject.
         assert all(j["judgment"]["decision"] == "reject" for j in judged)
         for j in judged:
             for voice in (
                 "charter_summary",
-                "neutral",
                 "judgemental",
-                "idealisation",
                 "reflection_1p",
                 "reflection_3p",
             ):

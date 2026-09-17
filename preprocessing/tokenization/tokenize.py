@@ -159,7 +159,15 @@ def run_split(args: argparse.Namespace) -> None:
     stage = args.stage
     out = Path(args.output_dir) / "annotated"
     logs = str(Path(args.output_dir) / "logs")
-    max_tokens = args.seq_length - args.reflection_budget
+    # Reflections and preflections annotate the same tokenized row, so the
+    # document must leave room for whichever of the two is injected.
+    annotation_budget = max(args.reflection_budget, args.preflection_budget)
+    max_tokens = args.seq_length - annotation_budget
+    print(
+        f"Annotation budget: {annotation_budget} tokens "
+        f"(reflection {args.reflection_budget}, preflection {args.preflection_budget}) "
+        f"-> {max_tokens} tokens of document per {args.seq_length}-token sequence"
+    )
     n_tasks = _count_parquets(args.annotated_data_dir)
 
     if stage in ("tokenize", "all"):
@@ -276,6 +284,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=128,
         help="Tokens reserved for reflections in split path (default: 128)",
+    )
+    p.add_argument(
+        "--preflection-budget",
+        type=int,
+        default=256,
+        help="Tokens reserved for preflections in split path (default: 256)",
     )
     p.add_argument(
         "--workers",

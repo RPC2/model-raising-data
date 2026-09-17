@@ -20,7 +20,7 @@ from pipeline.dashboard import render_header
 from pipeline.dashboard.shared import CHARTER_TEXT, render_source_text
 from pipeline.generation import (
     MODE_PART_NAMES as _MODE_PART_NAMES,
-    PREFLECTION_FIELDS_CURRENT as _PREFLECTION_FIELDS_CURRENT,
+    PREFLECTION_FIELDS_ALL as _PREFLECTION_FIELDS_ALL,
     PREFLECTION_PART_NAMES as _PREFLECTION_PART_NAMES,
     REFLECTION_PART_NAMES as _REFLECTION_PART_NAMES,
     detect_mode_voices as _detect_mode_voices,
@@ -703,17 +703,16 @@ def _render_loop_history():
 def _build_part_display(item: dict) -> list[tuple[str, str]]:
     """Return ``(label, text)`` pairs covering all annotation variants in *item*.
 
-    Items span three preflection schema generations (1-col legacy,
-    2-voice legacy, 4-field current) and may have a reflection present even
+    Items span four preflection schema generations (1-col legacy, 2-voice
+    legacy, 4-field, 2-field current) and may have a reflection present even
     when preflection failed (partial-success path in ``generate_batch``).
     Each group is detected independently, so a reflection-only item renders
     its reflection voices rather than falling back to empty legacy columns.
     """
     parts: list[tuple[str, str]] = []
-    if item.get("neutral") is not None or item.get("charter_summary") is not None:
-        parts.extend(
-            (f, item.get(f, "") or "") for f in _PREFLECTION_FIELDS_CURRENT
-        )
+    prefl_present = [f for f in _PREFLECTION_FIELDS_ALL if item.get(f) is not None]
+    if prefl_present:
+        parts.extend((f, item.get(f) or "") for f in prefl_present)
     elif item.get("preflection_1p") is not None:
         parts.extend(
             [
@@ -3358,26 +3357,25 @@ def pipeline_review_page():
                         "Preflection-only. Does the field adhere to its type "
                         "specification?\n"
                         "- charter_summary: '[X.Y] Title: summary.' format, "
-                        "document-agnostic, ≤ 6 sentences.\n"
-                        "- neutral: names the ethical territory, no verdict, "
-                        "no plot recap.\n"
-                        "- judgemental: opinionated verdict with specific reasoning, "
+                        "document-agnostic, 2–4 sentences.\n"
+                        "- judgemental: names the ethical territory and gives an "
+                        "opinionated verdict with specific reasoning, no plot recap, "
                         "no rubric-stamp codas.\n"
-                        "- idealisation: declarative present tense, adds a concrete "
-                        "divergent element vs. judgemental, no 'should/would/must'."
+                        "Older items also carry neutral (territory, no verdict) and "
+                        "idealisation (declarative present tense, no 'should/would/must')."
                     ),
                 }
 
-                # Preflection 4-field schema is scored on 3 dimensions per
-                # field; reflection (and legacy preflection) on 4 dimensions.
-                _PREFLECTION_4FIELD_DIMS = (
+                # Named-field preflection schema is scored on 3 dimensions
+                # per field; reflection (and legacy preflection) on 4 dimensions.
+                _PREFLECTION_FIELD_DIMS = (
                     "relevance",
                     "charter_grounding",
                     "class_discipline",
                 )
                 def _dims_for_part(part: str) -> list[str]:
-                    if part in _PREFLECTION_FIELDS_CURRENT:
-                        return list(_PREFLECTION_4FIELD_DIMS)
+                    if part in _PREFLECTION_FIELDS_ALL:
+                        return list(_PREFLECTION_FIELD_DIMS)
                     return list(dimensions)
 
                 # Per-part scoring: {part: {dim: slider}} — populated inline in
@@ -3987,9 +3985,9 @@ def pipeline_review_page():
         aggregate, decision = _compute_decision(all_vals)
 
         # Compute per-mode decisions (reflection / preflection).
-        # Bucket by set membership so the current 4-field preflection schema
-        # (charter_summary/neutral/judgemental/idealisation) lands in the
-        # preflection aggregate alongside legacy preflection_* parts.
+        # Bucket by set membership so the current preflection schema
+        # (charter_summary/judgemental) lands in the preflection aggregate
+        # alongside four-field and legacy preflection_* parts.
         refl_vals = [
             v
             for part, part_scores in scores.items()

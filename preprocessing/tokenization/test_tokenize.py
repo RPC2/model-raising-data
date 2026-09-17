@@ -142,6 +142,7 @@ def test_pipeline_both():
             "--pipeline", "both",
             "--seq-length", "2048",
             "--reflection-budget", "128",
+            "--preflection-budget", "128",
             "--seed", "42",
         ],
         capture_output=True, text=True,

@@ -8,6 +8,8 @@ without importing the charter.improve runner.
 from __future__ import annotations
 
 import re
+from difflib import SequenceMatcher
+from typing import NamedTuple
 
 from pipeline.api import extract_json
 
@@ -38,7 +40,7 @@ REFUSAL_REFLECTION_TASK = (
 PREFLECTION_TASK = (
     "\n\n## Task\n\n"
     "Preflection mode. The text above is the full passage. "
-    "Produce: analysis, charter_summary, neutral, judgemental, idealisation."
+    "Produce: analysis, charter_summary, judgemental."
 )
 
 FIELD_ALIASES: dict[str, str] = {
@@ -51,7 +53,7 @@ FIELD_ALIASES: dict[str, str] = {
     "reservation_3p": "reflection_3p",
     "reflectio_n_1p": "reflection_1p",
     "reflecting_1p": "reflection_1p",
-    # Four-field preflection: US spelling variants
+    # Preflection: US spelling variants
     "judgmental": "judgemental",
     "idealization": "idealisation",
 }
@@ -65,7 +67,7 @@ GEN_TEXT_FIELDS = (
     # Reflection voices (unchanged)
     "reflection_1p",
     "reflection_3p",
-    # Four-field preflection (current schema)
+    # Four-field-era preflection (charter_summary + judgemental are current)
     "charter_summary",
     "neutral",
     "judgemental",
@@ -77,7 +79,10 @@ GEN_TEXT_FIELDS = (
 # Canonical voice/field sets. Shared by the dashboard, improver tools, charter.improve
 # run, and charter.scale definitions so a schema change lands in one place.
 REFLECTION_VOICES = ("reflection_1p", "reflection_3p")
-PREFLECTION_FIELDS_CURRENT = (
+PREFLECTION_FIELDS_CURRENT = ("charter_summary", "judgemental")
+# Every four-field-era name in display order. `neutral` / `idealisation` are no
+# longer generated but stay readable for historical rows.
+PREFLECTION_FIELDS_ALL = (
     "charter_summary",
     "neutral",
     "judgemental",
@@ -86,21 +91,194 @@ PREFLECTION_FIELDS_CURRENT = (
 PREFLECTION_FIELDS_LEGACY = ("preflection_3p", "preflection_1p")
 
 REFLECTION_PART_NAMES = frozenset(REFLECTION_VOICES)
-PREFLECTION_PART_NAMES = frozenset(
-    PREFLECTION_FIELDS_CURRENT + PREFLECTION_FIELDS_LEGACY
-)
+PREFLECTION_PART_NAMES = frozenset(PREFLECTION_FIELDS_ALL + PREFLECTION_FIELDS_LEGACY)
 MODE_PART_NAMES = {
     "reflection": REFLECTION_PART_NAMES,
     "preflection": PREFLECTION_PART_NAMES,
 }
 
 
+_VIRTUE_VERB = (
+    r"glorif|endors|sensationalis|sensationaliz|normalis|normaliz|promot|celebrat|exploit|"
+    r"justif|encourag|trivialis|trivializ|condon|present|sanitis|sanitiz|instruct|"
+    r"minimis|minimiz|facilitat"
+)
+_EMPTY_CREDIT_RES = (
+    # virtue by negation: "without glorifying the act", "rather than sensationalising it"
+    re.compile(
+        r"\b(?:without|avoids?|avoiding|rather than|instead of|free from|refrains? from)"
+        r"\s+(?:\w+\s+){0,3}?(?:" + _VIRTUE_VERB + r")",
+        re.IGNORECASE,
+    ),
+    # virtue by adverb: "effectively critiques", "responsibly clarifies"
+    re.compile(
+        r"\b(?:effectively|critically|actively|appropriately|responsibly|carefully|"
+        r"successfully|properly)\s+\w+",
+        re.IGNORECASE,
+    ),
+    # virtue by equilibrium: "balances reporting interest with caution"
+    re.compile(
+        r"(?<!fails to )(?<!requires )(?<!should )(?<!must )"
+        r"\b(?:balanc\w+|maintain\w+)\s+(?:\w+\s+){0,3}?"
+        r"(?:with|between|distance|interest|restraint|caution|neutrality)\b",
+        re.IGNORECASE,
+    ),
+)
+
+
+def find_empty_credit(text: str) -> list[str]:
+    """Return clauses that credit a general virtue instead of naming a specific choice.
+
+    "Without glorifying the act" is true of nearly any passage, so it asserts almost
+    nothing. Three prompt revisions failed to stop the model writing these; detecting
+    them and quoting them back is what works, because a quoted clause is specific in
+    the way a standing rule is not.
+    """
+    out: list[str] = []
+    for pattern in _EMPTY_CREDIT_RES:
+        for m in pattern.finditer(text):
+            start = text.rfind(".", 0, m.start()) + 1
+            end = text.find(".", m.end())
+            clause = text[start : end if end != -1 else len(text)].strip()
+            if clause and clause not in out:
+                out.append(clause)
+    return out
+
+
+_SUMMARY_CHUNK_RE = re.compile(r"\[(\d+\.\d+)\]\s*([^:\n]{1,80}?)\s*:")
+
+
+def rebuild_summary_chunks(
+    text: str, titles: dict[str, str], glosses: dict[str, str]
+) -> str:
+    """Rewrite each ``[X.Y] Title: gloss`` chunk from the charter's own words.
+
+    28% of generated chunks state something the charter does not — often an
+    assessment of the document, which belongs in `judgemental`.
+    Both halves are derivable, so both are built. A text citing nothing passes
+    through untouched.
+    """
+    order = [sid for sid in _SUMMARY_CHUNK_RE.findall(text)]
+    seen = list(dict.fromkeys(sid for sid, _ in order))
+    if not seen:
+        return text
+    return " ".join(
+        f"[{sid}] {titles[sid]}: {glosses[sid]}" for sid in seen if sid in titles and sid in glosses
+    )
+
+
+# Double-quoted spans, then single-quoted ones. The single-quote pattern requires a
+# non-letter on both outer edges so possessives and contractions are left alone:
+# "the band's own words" must not read as an opening mark.
+_QUOTED_SPAN_RES = (
+    ('"', re.compile(r"[\"\u201c]([^\"\u201c\u201d\n]{2,120})[\"\u201d]")),
+    ("'", re.compile(r"(?<![A-Za-z])['\u2018]([^'\u2018\u2019\n]{2,120})['\u2019](?![A-Za-z])")),
+)
+_QUOTE_CHARS = "\"'\u201c\u201d\u2018\u2019"
+_SPAN_TRIM = "\\ ,.;:!?-'\""
+
+
+_QUOTE_FOLD = {"\u2019": "'", "\u201c": '"', "\u201d": '"'}
+
+
+def _flatten_with_offsets(text: str) -> tuple[str, list[int]]:
+    """`_flatten`'s output, plus the index in *text* of each flattened character.
+
+    An anchor offset has to land in the original document because the tokenizer
+    indexes that, and flattening collapses whitespace runs, so the mapping is
+    unrecoverable once the string is built. A lowercase that lengthens its
+    character — Turkish `\u0130` becomes two — repeats the source index.
+    """
+    out: list[str] = []
+    idx: list[int] = []
+    prev_space = True
+    for i, ch in enumerate(text):
+        c = _QUOTE_FOLD.get(ch, ch).lower()
+        if c.isspace():
+            if prev_space:
+                continue
+            c, prev_space = " ", True
+        else:
+            prev_space = False
+        out.append(c)
+        idx.extend([i] * len(c))
+    while out and out[-1] == " ":
+        out.pop()
+        idx.pop()
+    return "".join(out), idx
+
+
+def _flatten(text: str) -> str:
+    """Lowercase with quote characters and whitespace flattened, for span matching."""
+    return _flatten_with_offsets(text)[0]
+
+
+def _quoted_spans(text: str) -> list[str]:
+    """Every quoted span in *text*, under either quote mark."""
+    return [m.group(1) for _, pattern in _QUOTED_SPAN_RES for m in pattern.finditer(text)]
+
+
+def ground_quoted_spans(text: str, source: str, threshold: float = 0.8) -> str:
+    """Correct or unquote every quoted span in *text* that *source* does not contain.
+
+    Requiring a verbatim span made the generator quote on 21% of sentences, and
+    five of seventy spans came back a word off — "your deserve" for "you deserve",
+    "robb banks" for "rob banks". None were invented, but a quotation mark asserts
+    the passage says this, so a near miss is a factual error rather than a typo.
+    A span close enough to one span of the source is snapped to it; anything else
+    keeps its words and loses its quotation marks.
+    """
+    # The model sometimes over-escapes its own JSON, so a decoded field arrives
+    # carrying a literal backslash before each quote mark.
+    text = re.sub(r"\\+(?=[\"'\u201c\u201d\u2018\u2019])", "", text)
+    flat = _flatten(source)
+    words = flat.split()
+    # The prefix test scans a punctuation-stripped view: a source that writes
+    # 'vomited blood' in its own quotes would otherwise never match a probe.
+    heads = [w.strip(_SPAN_TRIM)[:2] for w in words]
+
+    def _fixer(mark: str):
+        inner = "'" if mark == '"' else '"'
+
+        def _fix(m: re.Match) -> str:
+            raw = m.group(1)
+            probe = _flatten(raw).strip(_SPAN_TRIM)
+            if not probe or probe in flat:
+                return m.group(0)
+            n = len(probe.split())
+            best, score = None, threshold
+            head = probe[:2]
+            for i, h in enumerate(heads):
+                if h != head:
+                    continue
+                cand = " ".join(words[i : i + n])
+                ratio = SequenceMatcher(None, probe, cand).ratio()
+                if ratio > score:
+                    best, score = cand, ratio
+            if best is None:
+                return raw
+            body = best.strip(chr(92) + " ,.;:!?-")
+            # Drop the source's own wrapping marks, but only when they wrap the
+            # whole span: stripping one end of `violent and "bloodthirsty"` would
+            # leave the nesting open.
+            if len(body) > 2 and body[0] in _QUOTE_CHARS and body[-1] in _QUOTE_CHARS:
+                body = body[1:-1].strip()
+            # A remaining occurrence of this pair's own mark would unbalance it.
+            return f"{mark}{body.replace(mark, inner)}{mark}"
+
+        return _fix
+
+    for mark, pattern in _QUOTED_SPAN_RES:
+        text = pattern.sub(_fixer(mark), text)
+    return text
+
+
 def detect_mode_voices(payload: dict, mode: str) -> tuple[str, ...]:
     """Return voice/field keys in *payload* that belong to *mode*, sorted.
 
     *payload* can be a judgment dict or a review `scores` dict. The preflection
-    mode spans two schema generations (legacy 2-voice + current 4-field), so
-    old and new payloads both resolve to their natural key set.
+    mode spans three schema generations (legacy 2-voice, 4-field, current
+    2-field), so old and new payloads both resolve to their natural key set.
     """
     part_names = MODE_PART_NAMES.get(mode, frozenset())
     return tuple(sorted(k for k in payload.keys() if k in part_names))
@@ -108,8 +286,8 @@ def detect_mode_voices(payload: dict, mode: str) -> tuple[str, ...]:
 
 # Reflection-mode guard: model produced preflection_* keys when we asked for
 # reflection_*. No inverse entry for the new preflection schema — its field
-# names (charter_summary / neutral / judgemental / idealisation) can't collide
-# with reflection voices, so no remap is needed.
+# names (charter_summary / judgemental) can't collide with reflection voices,
+# so no remap is needed.
 _MODE_REMAP = {
     ("reflection_1p", "reflection_3p"): {
         "preflection_1p": "reflection_1p",
@@ -174,6 +352,125 @@ def _assert_no_key_leakage(parsed: dict, required_fields: set[str]) -> None:
         )
 
 
+_BRACKET_RE = re.compile(r"\[([\d.,;\s]+)\]")
+_SECTION_ID_RE = re.compile(r"\d+\.\d+")
+
+
+def _section_refs(text: str) -> list[str]:
+    """Every section id inside square brackets, including `[1.2, 1.4]` lists."""
+    return [sid for group in _BRACKET_RE.findall(text) for sid in _SECTION_ID_RE.findall(group)]
+
+
+_SENT_MASK = {ord("."): "\x01", ord("!"): "\x02", ord("?"): "\x03"}
+_SENT_UNMASK = {1: ".", 2: "!", 3: "?"}
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split on sentence punctuation, with the dot of every X.Y masked.
+
+    A section reference carries a full stop, so an unmasked split cuts "[2.1]"
+    into "[2" and "1]" and every downstream count is wrong. Masking the first id
+    of a list is not enough: "[2.1, 2.7]" is one citation the prompt allows, and
+    the second dot splits the sentence just as readily. Any digit.digit is masked,
+    which also keeps a decimal in the prose from ending a sentence.
+
+    A quoted span carries the source's own punctuation — "Kids are so damn
+    racist." ends in a full stop — and splitting there strands the span in a
+    fragment that holds no citation. Nine of the bench's 163 locatable spans
+    were lost that way, so span interiors are masked as well.
+    """
+    masked = re.sub(r"(\d)\.(\d)", lambda m: f"{m.group(1)}\x00{m.group(2)}", text)
+    for _, pattern in _QUOTED_SPAN_RES:
+        masked = pattern.sub(lambda m: m.group(0).translate(_SENT_MASK), masked)
+    # The trailing alternative keeps a final sentence that never got its full stop:
+    # without it a one-sentence judgemental splits into nothing and reads as uncited.
+    parts = re.findall(r"[^.!?]+[.!?]|[^.!?]+$", masked)
+    return [
+        p.replace("\x00", ".").translate(_SENT_UNMASK).strip()
+        for p in parts
+        if p.strip()
+    ]
+
+
+class Anchor(NamedTuple):
+    """A cited section, the span quoted as its evidence, and where that span starts."""
+
+    section: str
+    span: str
+    char_offset: int
+
+
+def preflection_anchors(judgemental: str, source: str) -> list[Anchor]:
+    """Pair every cited section with the position in *source* of the span quoted for it.
+
+    The prompt's contract is one section per `judgemental` sentence carrying a
+    verbatim span, so the pairing is already in the prose and needs no separate
+    output field: across the 100-document bench no sentence cited two sections,
+    and 161 of 163 locatable spans resolved to exactly one. A sentence citing
+    nothing, citing more than one section, or quoting nothing the source holds
+    contributes no anchor rather than a guessed one.
+
+    Offsets index *source* itself, so a caller can hand one to
+    ``pipeline.tokenizer.char_offset_to_token_index``. Returned earliest first.
+    """
+    flat, offsets = _flatten_with_offsets(source)
+    out: list[Anchor] = []
+    for sentence in _split_sentences(judgemental):
+        sections = set(_section_refs(sentence))
+        if len(sections) != 1:
+            continue
+        (section,) = sections
+        for span in _quoted_spans(sentence):
+            probe = _flatten(span).strip(_SPAN_TRIM)
+            if not probe:
+                continue
+            i = flat.find(probe)
+            if i >= 0:
+                out.append(Anchor(section, span, offsets[i]))
+    return sorted(out, key=lambda a: a.char_offset)
+
+
+def preflection_insertion_point(judgemental: str, source: str) -> int | None:
+    """Character offset in *source* where the preflection belongs, or None to prepend.
+
+    The earliest anchor. A preflection stands before the text it describes, so
+    every span it quotes has to lie ahead of the insertion point, and only the
+    earliest anchor gives that. On the bench it lands a median 31% into the
+    document, with 35 of 58 documents past the first quarter, so it moves the
+    annotation off the front for most of them.
+
+    None when no sentence pairs a section with a locatable span — 4 of 62 citing
+    documents on the bench — leaving the caller to prepend as before.
+    """
+    anchors = preflection_anchors(judgemental, source)
+    return anchors[0].char_offset if anchors else None
+
+
+def _assert_judgemental_carries_its_citations(
+    parsed: dict, required_fields: set[str]
+) -> None:
+    """Raise when `judgemental` drops every bracket a cited `charter_summary` kept.
+
+    The prompt asks for the same citation set in both fields, and the failure is
+    one-sided: `judgemental` writes the assessment and omits the markers, so the
+    row reads as benign to anything that counts citations there. Raising here puts
+    the document back through the generator's retry path, which is the only place
+    the mapping from sentence to section still exists.
+    """
+    if not set(PREFLECTION_FIELDS_CURRENT) <= required_fields:
+        return
+    summary = _section_refs(str(parsed.get("charter_summary", "")))
+    judgemental = str(parsed.get("judgemental", ""))
+    if not summary:
+        return
+    if not _section_refs(judgemental):
+        raise AssertionError(
+            f"judgemental carries no [X.Y] citation while charter_summary cites "
+            f"{sorted(set(summary))}"
+        )
+
+
+
 def parse_generation(
     raw: str,
     required_fields: set[str] | None = None,
@@ -182,7 +479,7 @@ def parse_generation(
 
     Extracts JSON from response, handling prose before/after JSON and code fences.
     Normalises known alias variants to the canonical schema. The default
-    *required_fields* covers the current preflection (4 fields) +
+    *required_fields* covers the current preflection (2 fields) +
     reflection (2 voices) schema; pass a subset to parse a single-mode response.
     """
     parsed = extract_json(raw)
@@ -202,10 +499,7 @@ def parse_generation(
     if required_fields is None:
         required_fields = {
             "analysis",
-            "charter_summary",
-            "neutral",
-            "judgemental",
-            "idealisation",
+            *PREFLECTION_FIELDS_CURRENT,
             "reflection_1p",
             "reflection_3p",
         }
@@ -225,4 +519,5 @@ def parse_generation(
         if field in parsed and isinstance(parsed[field], list):
             parsed[field] = "\n".join(str(x) for x in parsed[field])
     _assert_no_key_leakage(parsed, required_fields)
+    _assert_judgemental_carries_its_citations(parsed, required_fields)
     return parsed

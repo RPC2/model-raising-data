@@ -26,13 +26,7 @@ from pipeline.generation import parse_generation
 
 
 REFLECTION_FIELDS = {"analysis", "reflection_1p", "reflection_3p"}
-PREFLECTION_FIELDS = {
-    "analysis",
-    "charter_summary",
-    "neutral",
-    "judgemental",
-    "idealisation",
-}
+PREFLECTION_FIELDS = {"analysis", "charter_summary", "judgemental"}
 
 
 def _wrap(payload: dict) -> str:
@@ -53,12 +47,10 @@ class TestCleanResponses:
         raw = _wrap({
             "analysis": "Scratchpad.",
             "charter_summary": "Summary of charter.",
-            "neutral": "Neutral framing.",
             "judgemental": "Judgemental framing.",
-            "idealisation": "Idealised framing.",
         })
         out = parse_generation(raw, required_fields=PREFLECTION_FIELDS)
-        assert out["neutral"] == "Neutral framing."
+        assert out["judgemental"] == "Judgemental framing."
 
     def test_natural_prose_word_neutral_passes(self):
         # "neutral" appearing as natural English in a reflection is fine.
@@ -115,9 +107,7 @@ class TestUnquotedKeyLeaks:
         raw = _wrap({
             "analysis": "ok",
             "charter_summary": "Summary.",
-            "neutral": "Neutral framing then charter_summary leaks here.",
-            "judgemental": "Judgemental.",
-            "idealisation": "Idealisation.",
+            "judgemental": "Judgemental framing then charter_summary leaks here.",
         })
         with pytest.raises(AssertionError, match="charter_summary"):
             parse_generation(raw, required_fields=PREFLECTION_FIELDS)
@@ -148,9 +138,7 @@ class TestQuotedKeyLeaks:
         raw = _wrap({
             "analysis": "ok",
             "charter_summary": "Summary.",
-            "neutral": "Neutral.",
             "judgemental": 'Judgemental then "neutral": leaked.',
-            "idealisation": "Idealisation.",
         })
         with pytest.raises(AssertionError, match="neutral"):
             parse_generation(raw, required_fields=PREFLECTION_FIELDS)
@@ -164,3 +152,119 @@ class TestQuotedKeyLeaks:
         })
         with pytest.raises(AssertionError, match="reflection_3p"):
             parse_generation(raw, required_fields=REFLECTION_FIELDS)
+
+
+class TestGroundQuotedSpans:
+    """A quotation mark asserts the passage says this, so a near miss is an error."""
+
+    SOURCE = (
+        'You deserve a better story and remembrance than that. They rob banks for him. '
+        'Islam is projected as a violent and "bloodthirsty" religion.'
+    )
+
+    def test_snaps_a_span_that_is_one_word_off(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans('It tells her "your deserve a better story" [2.2].', self.SOURCE)
+        assert '"you deserve a better story"' in out
+
+    def test_unquotes_a_span_the_source_does_not_contain(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans('It claims "a wholly invented clause" [3.1].', self.SOURCE)
+        assert '"' not in out
+        assert "a wholly invented clause" in out
+
+    def test_leaves_an_exact_span_alone(self):
+        from pipeline.generation import ground_quoted_spans
+
+        text = 'Others "rob banks for him" [2.7].'
+        assert ground_quoted_spans(text, self.SOURCE) == text
+
+    def test_snapped_span_does_not_unbalance_the_quotes(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans("Projecting \"violent and 'bloodthirsty'\" narratives [2.3].", self.SOURCE)
+        assert out.count('"') % 2 == 0, out
+
+    def test_snaps_a_single_quoted_span(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans("Others 'robb banks for him' [2.7].", self.SOURCE)
+        assert "'rob banks for him'" in out
+
+    def test_leaves_possessives_and_contractions_alone(self):
+        from pipeline.generation import ground_quoted_spans
+
+        text = "The band's own words and the singer's reply don't shift [4.3]."
+        assert ground_quoted_spans(text, self.SOURCE) == text
+
+    def test_drops_the_sources_own_wrapping_marks(self):
+        from pipeline.generation import ground_quoted_spans
+
+        source = "She 'vomited blood' onstage."
+        out = ground_quoted_spans("It says she 'vomited bloods' [2.1].", source)
+        assert out == "It says she 'vomited blood' [2.1]."
+
+    def test_strips_the_models_own_over_escaping(self):
+        from pipeline.generation import ground_quoted_spans
+
+        out = ground_quoted_spans(r'Others \\"rob banks for him\\" [2.7].', self.SOURCE)
+        assert "\\" not in out
+        assert '"rob banks for him"' in out
+
+    def test_ignores_a_document_with_no_quotes(self):
+        from pipeline.generation import ground_quoted_spans
+
+        text = "The text discusses the issue [1.1]."
+        assert ground_quoted_spans(text, self.SOURCE) == text
+
+
+class TestJudgementalCitationGuard:
+    """`judgemental` omitting every bracket makes a loaded row look benign."""
+
+    REQUIRED = {"analysis", "charter_summary", "judgemental"}
+
+    def _raw(self, summary: str, judgemental: str) -> str:
+        return json.dumps(
+            {"analysis": "a", "charter_summary": summary, "judgemental": judgemental}
+        )
+
+    def test_raises_when_judgemental_drops_all_citations(self):
+        raw = self._raw("[2.1] Physical Safety: x.", "The text depicts a fatal assault.")
+        with pytest.raises(AssertionError, match="no \\[X.Y\\] citation"):
+            parse_generation(raw, self.REQUIRED)
+
+    def test_accepts_a_benign_row_with_no_citations_anywhere(self):
+        raw = self._raw("No sections cited.", "Nothing ethically loaded.")
+        assert parse_generation(raw, self.REQUIRED)["judgemental"] == "Nothing ethically loaded."
+
+    def test_accepts_matching_citations(self):
+        raw = self._raw("[2.1] Physical Safety: x.", "It reports the assault [2.1].")
+        assert parse_generation(raw, self.REQUIRED)["charter_summary"].startswith("[2.1]")
+
+    def test_accepts_one_sentence_per_declared_section(self):
+        raw = self._raw(
+            "[2.1] Physical Safety: x. [2.7] Serious Wrongdoing: y.",
+            'It quotes "a fatal blow" [2.1]. It names the cover-up [2.7].',
+        )
+        assert parse_generation(raw, self.REQUIRED)["judgemental"].startswith("It quotes")
+
+    def test_citation_periods_do_not_break_the_sentence_split(self):
+        from pipeline.generation import _split_sentences
+
+        assert _split_sentences("A [2.1]. B [10.12]!") == ["A [2.1].", "B [10.12]!"]
+
+    def test_does_not_fire_on_a_reflection_request(self):
+        raw = json.dumps(
+            {"analysis": "a", "reflection_1p": "x [2.1]", "reflection_3p": "y"}
+        )
+        parse_generation(raw, {"analysis", "reflection_1p", "reflection_3p"})
+
+
+def test_split_sentences_keeps_an_unterminated_final_sentence():
+    """A judgemental without a closing full stop must not read as uncited."""
+    from pipeline.generation import _split_sentences
+
+    assert _split_sentences("j content [1.1]") == ["j content [1.1]"]
+    assert _split_sentences("A [2.1]. B [2.7]") == ["A [2.1].", "B [2.7]"]
