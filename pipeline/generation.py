@@ -229,57 +229,6 @@ def _flatten(text: str) -> str:
     return _flatten_with_offsets(text)[0]
 
 
-_CONTEXT_BLOCK_RE = re.compile(r"context:\s*(.*?)(?:\n\s*citations:|\Z)", re.IGNORECASE | re.DOTALL)
-_LINE_MARKER_TRIM = "> -*\u2022\t \"'\u201c\u201d\u2018\u2019"
-
-
-def context_sentences(analysis: str) -> list[str]:
-    """The source sentences the generator says each span came from.
-
-    They arrive as bare lines under `Context:`, sometimes carrying a quote
-    marker or a bullet, so the markers come off before matching.
-    """
-    block = _CONTEXT_BLOCK_RE.search(analysis)
-    if not block:
-        return []
-    out = []
-    for line in block.group(1).replace("\\n", "\n").split("\n"):
-        cleaned = line.strip().strip(_LINE_MARKER_TRIM).strip()
-        if len(cleaned) > 15:
-            out.append(cleaned)
-    return out
-
-
-def find_uncontexted_spans(analysis: str, judgemental: str, source: str) -> list[str]:
-    """Spans quoted in `judgemental` with no verbatim containing sentence in `analysis`.
-
-    Verbatim retrieval reached 100% while comprehension still failed on about 13%
-    of spans: the source says to avoid a supplement and the annotation reports it
-    as promoted, a line of dialogue loses its speaker label and is attributed to
-    the wrong character. Both are spans read out of their sentence. The generator
-    writes each containing sentence into the scratchpad, and this checks that the
-    sentence is real and actually holds the span.
-
-    The prompt-side instruction was reverted: it made the generator read the
-    surrounding sentence, and 82% of spans came back with a verified containing
-    sentence against 0% before, but two hand reviews scored the run 3/6/13 and
-    3/3/16 against the version without it, with invented findings rising 1 to 6
-    and 6 to 14. Showing its reading did not make the model read better. Kept as
-    the measurement apparatus for that result, and for whoever retries the idea.
-    """
-    flat_source = _flatten(source)
-    context = [_flatten(c) for c in context_sentences(analysis)]
-    grounded = [c for c in context if c in flat_source]
-    out = []
-    for span in _quoted_spans(judgemental):
-        probe = _flatten(span).strip(_SPAN_TRIM)
-        if not probe:
-            continue
-        if not any(probe in c for c in grounded):
-            out.append(span)
-    return out
-
-
 def _quoted_spans(text: str) -> list[str]:
     """Every quoted span in *text*, under either quote mark."""
     return [m.group(1) for _, pattern in _QUOTED_SPAN_RES for m in pattern.finditer(text)]
