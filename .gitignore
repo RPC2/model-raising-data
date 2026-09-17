@@ -46,5 +46,4 @@ prompt_pipeline/.password
 prompt_pipeline/dev.html
 prompt_pipeline/*.log
 
-# Ad-hoc experiment harnesses and throwaway scripts — never committed
 .scratch/
