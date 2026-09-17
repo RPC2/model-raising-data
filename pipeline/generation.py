@@ -148,29 +148,13 @@ def find_empty_credit(text: str) -> list[str]:
 _SUMMARY_CHUNK_RE = re.compile(r"\[(\d+\.\d+)\]\s*([^:\n]{1,80}?)\s*:")
 
 
-def canonicalise_summary_titles(text: str, titles: dict[str, str]) -> str:
-    """Replace each ``[X.Y] Title:`` in a charter_summary with the charter's own title.
-
-    The generator abbreviates section names — "Mental Health" for "Mental Health
-    and Self-Harm" — dropping the clause the citation was made for. There is
-    exactly one correct title per section, so this is a repair, not a check.
-    """
-
-    def _fix(m: re.Match) -> str:
-        want = titles.get(m.group(1))
-        return m.group(0) if want is None else f"[{m.group(1)}] {want}:"
-
-    return _SUMMARY_CHUNK_RE.sub(_fix, text)
-
-
 def rebuild_summary_chunks(
     text: str, titles: dict[str, str], glosses: dict[str, str]
 ) -> str:
     """Rewrite each ``[X.Y] Title: gloss`` chunk from the charter's own words.
 
-    `canonicalise_summary_titles` repaired the title and left the gloss as the
-    model wrote it, and 28% of generated chunks state something the charter does
-    not — often an assessment of the document, which belongs in `judgemental`.
+    28% of generated chunks state something the charter does not — often an
+    assessment of the document, which belongs in `judgemental`.
     Both halves are derivable, so both are built. A text citing nothing passes
     through untouched.
     """
@@ -375,30 +359,6 @@ _SECTION_ID_RE = re.compile(r"\d+\.\d+")
 def _section_refs(text: str) -> list[str]:
     """Every section id inside square brackets, including `[1.2, 1.4]` lists."""
     return [sid for group in _BRACKET_RE.findall(text) for sid in _SECTION_ID_RE.findall(group)]
-
-
-def find_citation_contract_defects(charter_summary: str, judgemental: str) -> list[str]:
-    """Report where `judgemental` breaks one-section-per-sentence, without rejecting.
-
-    Both hand reviews asked for this enforced at generation time, and enforcing it
-    that way cost more than it bought: rejecting on it dropped 5 of 100 bench
-    documents after retries, one of which the judge had accepted outright. A
-    document with no annotation teaches the student less than one whose citations
-    bind loosely, so this measures rather than raises. The genuinely misleading
-    case — no citation at all, which reads as benign — still raises.
-    """
-    declared = sorted(set(_section_refs(charter_summary)))
-    if not declared:
-        return []
-    used = [_section_refs(sent) for sent in _split_sentences(judgemental)]
-    out = []
-    for u in used:
-        if len(u) > 1:
-            out.append(f"sentence cites {u}, so neither section carries its own evidence")
-    flat = sorted(x for u in used for x in u)
-    if flat != declared:
-        out.append(f"judgemental cites {flat} but charter_summary declares {declared}")
-    return out
 
 
 _SENT_MASK = {ord("."): "\x01", ord("!"): "\x02", ord("?"): "\x03"}

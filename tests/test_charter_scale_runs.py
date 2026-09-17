@@ -645,15 +645,3 @@ def test_preflection_post_process_canonicalises_section_titles():
     assert "[1.1] Human Dignity:" in out["charter_summary"]
     assert "[5.3] Mental Health:" not in out["charter_summary"]
     assert out["judgemental"] == "Assessment citing [5.3], [6.1] and [1.1]."
-
-
-def test_canonicalise_leaves_unknown_sections_alone():
-    """An id absent from the charter is left exactly as the generator wrote it."""
-    from pipeline.config import CHARTER_PATH, parse_charter_titles
-    from pipeline.generation import canonicalise_summary_titles
-
-    titles = parse_charter_titles(CHARTER_PATH.read_text(encoding="utf-8"))
-    text = "[9.9] Invented Section: nothing. [1.3] Equality: something."
-    got = canonicalise_summary_titles(text, titles)
-    assert "[9.9] Invented Section: nothing." in got
-    assert "[1.3] Equality and Non-Discrimination:" in got
