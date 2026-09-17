@@ -310,6 +310,7 @@ def cmd_submit(args, overrides):
         AnnotationGenerator(
             run_name=run_name,
             generator_alias=cfg.charter.scale.generator_alias,
+            model_name=cfg.charter.scale.sglang.hf_slug,
             prompt_filename=active_prompt_filename,
             output_dir=cfg.charter.scale.output_dir,
             max_concurrent_requests=cfg.charter.scale.max_concurrent_requests,

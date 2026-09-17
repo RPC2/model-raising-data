@@ -6,6 +6,7 @@ server, parses responses, and appends results to a JSONL file.
 
 Key design points:
 - Endpoint comes from ``os.environ["SGLANG_ENDPOINT"]`` at run() time.
+- Model name is passed explicitly (``model_name``), never discovered from the endpoint.
 - Resume: loads done_set from existing results.jsonl before processing.
 - Save thread: batches and flushes results asynchronously (no fsync —
   see _save_loop docstring for rationale).
@@ -53,6 +54,7 @@ class AnnotationGenerator(PipelineStep):
         self,
         run_name: str,
         generator_alias: str,
+        model_name: str,
         prompt_filename: str,
         output_dir: str,
         max_concurrent_requests: int = 2048,
@@ -70,6 +72,7 @@ class AnnotationGenerator(PipelineStep):
         super().__init__()
         self.run_name = run_name
         self.generator_alias = generator_alias
+        self.model_name = model_name
         self.prompt_filename = prompt_filename
         self.output_dir = output_dir
         self.max_concurrent_requests = max_concurrent_requests
@@ -175,6 +178,7 @@ class AnnotationGenerator(PipelineStep):
                     canary_seed=self.canary_seed,
                     reflection_seed=self.reflection_seed,
                     endpoint=endpoint,
+                    model_name=self.model_name,
                     max_concurrent=self.max_concurrent_requests,
                     thinking=self.thinking,
                     json_mode=self.json_mode,
@@ -346,6 +350,7 @@ async def _generate_all(
     canary_seed: int,
     reflection_seed: int,
     endpoint: str,
+    model_name: str,
     max_concurrent: int,
     thinking: bool,
     json_mode: bool,
@@ -365,10 +370,7 @@ async def _generate_all(
         api_keys={endpoint: "SGLANG_API_KEY"},
     )
 
-    # Discover the served model name from the endpoint
-    models_resp = await client.models.list()
-    served_model = models_resp.data[0].id
-    logger.info("Rank {}: using served model '{}'", rank, served_model)
+    logger.info("Rank {}: using model '{}' at {}", rank, model_name, endpoint)
 
     n_ok = 0
     n_fail = 0
@@ -414,7 +416,7 @@ async def _generate_all(
                 for messages, required_fields, meta in call_specs:
                     raw, reasoning, usage = await api_call(
                         client,
-                        served_model,
+                        model_name,
                         messages,
                         semaphore,
                         thinking=thinking,

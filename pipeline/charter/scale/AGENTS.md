@@ -75,7 +75,7 @@ The `summaries` run (`pipeline/summaries/prompts/summary_v7.md` → `summary`/`s
 
 The pipeline runs in the **host Python venv** (not inside the container). Only sglang runs inside the enroot/pyxis container. The `env_command` in `__main__.py` launches sglang via `srun --environment=<env_toml>` in the background, waits for health, then activates the venv for the pipeline.
 
-The API client connects to `http://localhost:{port}/v1` with `SGLANG_API_KEY=none`. The served model name is discovered at runtime via `client.models.list()` (it's the `sglang.hf_slug` from config).
+The API client connects to `http://localhost:{port}/v1` with `SGLANG_API_KEY=none`. The model name sent with each request is `sglang.hf_slug`, which is also sglang's `--served-model-name`.
 
 ### Container images
 
