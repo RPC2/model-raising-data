@@ -133,12 +133,14 @@ async def api_call(
     silently clamp the output to a provider-specific default.  When *None*,
     the parameter is omitted and the server uses all available context.
     """
-    extra_body = None
-    if thinking:
-        extra_body = {
-            "separate_reasoning": True,
-            "chat_template_kwargs": {"enable_thinking": True},
-        }
+    # Sent in both directions: a thinking-capable template (Qwen3.5, GLM, SmolLM3)
+    # thinks by default, so omitting the kwarg when *thinking* is False left the
+    # model reasoning anyway — 97% of generated tokens on the charter.scale
+    # preflection bench — while config said thinking: false.
+    extra_body = {
+        "separate_reasoning": thinking,
+        "chat_template_kwargs": {"enable_thinking": thinking},
+    }
 
     response_format = None
     if json_mode:
