@@ -139,7 +139,7 @@ class TestInsertionPoint:
             'It quotes "everything we own is gone" [4.3].'
         )
         point = preflection_insertion_point(judgemental, self.SOURCE)
-        assert self.SOURCE[point:].startswith("everything we own is gone")
+        assert self.SOURCE[point:].startswith("A witness told the paper")
 
     def test_every_span_lies_ahead_of_the_insertion_point(self):
         """The preflection stands before the text it quotes, so nothing it cites is behind."""
@@ -160,6 +160,43 @@ class TestInsertionPoint:
             preflection_insertion_point("It reports the theft [4.3].", self.SOURCE)
             is None
         )
+
+
+class TestSentenceSnapping:
+    """An annotation dropped at the span itself would split the sentence around it."""
+
+    SOURCE = TestPreflectionAnchors.SOURCE
+
+    def test_snaps_back_to_the_start_of_the_sentence(self):
+        judgemental = 'It quotes "every cent" reaching the band [5.6].'
+        point = preflection_insertion_point(judgemental, self.SOURCE)
+        assert self.SOURCE[point:].startswith("Later the organiser confirmed")
+
+    def test_leaves_a_span_that_already_opens_a_sentence(self):
+        source = "First sentence. Second sentence carries the span."
+        judgemental = 'It quotes "Second sentence" [1.1].'
+        assert preflection_insertion_point(judgemental, source) == len("First sentence. ")
+
+    def test_treats_a_line_break_as_a_boundary(self):
+        source = "A headline with no full stop\nThe body mentions the theft here."
+        judgemental = 'It quotes "the theft" [4.3].'
+        point = preflection_insertion_point(judgemental, source)
+        assert source[point:].startswith("The body mentions")
+
+    def test_falls_back_to_the_document_start(self):
+        """Unpunctuated documents (SEO spam, link dumps) have no earlier boundary."""
+        source = "keto diet plan jenna jameson free trial food suppressant powder"
+        judgemental = 'It repeats "food suppressant" as a title element [3.1].'
+        assert preflection_insertion_point(judgemental, source) == 0
+
+    def test_keeps_every_span_ahead_of_the_point(self):
+        judgemental = (
+            'It quotes "everything we own is gone" [4.3]. '
+            'It states that "every cent" reaches the band [5.6].'
+        )
+        point = preflection_insertion_point(judgemental, self.SOURCE)
+        for anchor in preflection_anchors(judgemental, self.SOURCE):
+            assert anchor.char_offset >= point
 
 
 class TestPreflectionsRunWritesThePosition:
@@ -200,10 +237,10 @@ class TestPreflectionsRunWritesThePosition:
             "preflection_token_index",
         }
 
-    def test_position_lands_on_the_quoted_span(self):
+    def test_position_lands_on_the_sentence_holding_the_quoted_span(self):
         _meta, row = self._run()
         assert self.DOC[row["preflection_position"] :].startswith(
-            "everything we own is gone"
+            "A witness said everything we own is gone."
         )
 
     def test_token_index_matches_the_character_position(self):

@@ -175,6 +175,8 @@ _QUOTED_SPAN_RES = (
     ("'", re.compile(r"(?<![A-Za-z])['\u2018]([^'\u2018\u2019\n]{2,120})['\u2019](?![A-Za-z])")),
 )
 _QUOTE_CHARS = "\"'\u201c\u201d\u2018\u2019"
+# Sentence end in *source* prose: terminator, any closing quotes/brackets, whitespace.
+_SENTENCE_END_RE = re.compile(r"[.!?\u2026][\"'\u201d\u2019\)\]]*\s")
 _SPAN_TRIM = "\\ ,.;:!?-'\""
 
 
@@ -430,20 +432,45 @@ def preflection_anchors(judgemental: str, source: str) -> list[Anchor]:
     return sorted(out, key=lambda a: a.char_offset)
 
 
+def _sentence_start_at_or_before(source: str, offset: int) -> int:
+    """Start of the sentence or line of *source* that contains *offset*.
+
+    An anchor points at the first character of a quoted span, which normally sits
+    mid-sentence, so inserting there splits the sentence the span belongs to. The
+    scan runs backwards to the nearest sentence terminator or line break and skips
+    the whitespace after it; 0 when the span sits in the first sentence.
+
+    Backwards, never forwards: ``preflection_insertion_point`` guarantees every
+    quoted span lies ahead of the point it returns, and moving forward past the
+    span would break that.
+    """
+    window = source[:offset]
+    last_end = 0
+    for match in _SENTENCE_END_RE.finditer(window):
+        last_end = match.end()
+    start = max(last_end, window.rfind("\n") + 1)
+    while start < offset and source[start].isspace():
+        start += 1
+    return start
+
+
 def preflection_insertion_point(judgemental: str, source: str) -> int | None:
     """Character offset in *source* where the preflection belongs, or None to prepend.
 
-    The earliest anchor. A preflection stands before the text it describes, so
-    every span it quotes has to lie ahead of the insertion point, and only the
-    earliest anchor gives that. On the bench it lands a median 31% into the
-    document, with 35 of 58 documents past the first quarter, so it moves the
-    annotation off the front for most of them.
+    The earliest anchor, snapped back to the start of the sentence holding it so
+    the annotation never lands mid-sentence. A preflection stands before the text
+    it describes, so every span it quotes has to lie ahead of the insertion point,
+    and only the earliest anchor gives that. On the bench it lands a median 31%
+    into the document, with 35 of 58 documents past the first quarter, so it moves
+    the annotation off the front for most of them.
 
     None when no sentence pairs a section with a locatable span — 4 of 62 citing
     documents on the bench — leaving the caller to prepend as before.
     """
     anchors = preflection_anchors(judgemental, source)
-    return anchors[0].char_offset if anchors else None
+    if not anchors:
+        return None
+    return _sentence_start_at_or_before(source, anchors[0].char_offset)
 
 
 def _assert_judgemental_carries_its_citations(
