@@ -1,0 +1,28 @@
+# sglang server for model-raising-data charter.scale local generation (Clariden GH200 / aarch64).
+# Image: lmsysorg/sglang:v0.5.19-cu129, built by /capstor/store/cscs/swissai/ab023/xccyn/spsd/model-raising-data/scripts/clariden-preflections/jobs/01_build_container.slurm.
+# Container image and generated data remain on scratch; source code lives on /capstor.
+# Use via: srun --environment=/capstor/store/cscs/swissai/ab023/xccyn/spsd/model-raising-data/scripts/clariden-preflections/mrd-sglang.toml ...
+
+image = "/iopsstor/scratch/cscs/xccyn/containers/mrd-sglang-v0.5.19-cu129.sqsh"
+
+mounts = [
+  "/capstor",
+  "/iopsstor",
+  "/users",
+]
+
+[env]
+FI_CXI_DISABLE_HOST_REGISTER = "1"
+FI_MR_CACHE_MONITOR = "userfaultfd"
+ROCR_VISIBLE_DEVICES = ""
+
+# HF_TOKEN is NOT stored here; job scripts export it from ~/.hf_token.
+HF_HOME = "/iopsstor/scratch/cscs/xccyn/mrd-local-qwen/hf_cache"
+TRITON_CACHE_DIR = "/iopsstor/scratch/cscs/xccyn/mrd-local-qwen/cache/triton"
+TORCHINDUCTOR_CACHE_DIR = "/iopsstor/scratch/cscs/xccyn/mrd-local-qwen/cache/inductor"
+XDG_CACHE_HOME = "/iopsstor/scratch/cscs/xccyn/mrd-local-qwen/cache/xdg"
+
+[annotations]
+# CUDA 12.9 image -> cuda12 variant.
+com.hooks.aws_ofi_nccl.enabled = "true"
+com.hooks.aws_ofi_nccl.variant = "cuda12"

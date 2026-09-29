@@ -1,0 +1,8 @@
+charter.scale.sidecar_path=/iopsstor/scratch/cscs/xccyn/mrd-local-qwen/mini_sidecar.parquet
+charter.scale.max_rows=20
+charter.scale.rows_per_task=20
+charter.scale.sglang.model_path=/iopsstor/scratch/cscs/xccyn/mrd-local-qwen/hf_models/Qwen3.5-35B-A3B-FP8
+charter.scale.sglang.env_toml=/capstor/store/cscs/swissai/ab023/xccyn/spsd/model-raising-data/scripts/clariden-preflections/mrd-sglang.toml
+charter.scale.slurm.account=ab023
+charter.scale.slurm.partition=debug
+charter.scale.slurm.time=01:00:00
